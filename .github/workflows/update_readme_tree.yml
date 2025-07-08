@@ -1,61 +1,55 @@
 name: Update README Tree
 
-# 控制工作流触发的条件
 on:
   push:
     branches:
-      - master  # 或者你的主分支名，如 master
+      - master # Or your default branch, e.g., master
 
 jobs:
   update-tree:
     runs-on: ubuntu-latest
     steps:
-      # 第 1 步：拉取仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 第 2 步：生成目录树并保存到临时文件
-      # -I 参数用于忽略不想在目录树中显示的文件夹或文件，用 | 分隔
-      # 例如 '.git|.github|node_modules' 会忽略 .git, .github 和 node_modules 文件夹
       - name: Generate directory tree
+        # The -I flag ignores specified directories or files.
         run: |
           tree -I '.git|.github' > tree.md
 
-      # 第 3 步：使用 Python 脚本将目录树更新到 README.md
-      - name: Update README.md with new tree
+      - name: Update README.de with new tree
         run: |
-          python -c "
-import re
+          python -c '
+          import re
 
-with open('README.md', 'r+') as f:
-    readme_content = f.read()
-    
-    with open('tree.md', 'r') as tree_file:
-        tree_content = tree_file.read()
+          # Read the README file
+          with open("README.md", "r+", encoding="utf-8") as f:
+              readme_content = f.read()
+          
+          # Read the generated tree file
+          with open("tree.md", "r", encoding="utf-8") as tree_file:
+              tree_content = tree_file.read()
 
-    # 使用正则表达式找到标记之间的内容并替换
-    # re.DOTALL 使得 '.' 可以匹配包括换行符在内的任意字符
-    new_readme_content = re.sub(
-        r'()(.*)()',
-        f'\\1\n```\n{tree_content}```\n\\3',
-        readme_content,
-        flags=re.DOTALL
-    )
+          # Use regex to find the markers and replace the content
+          new_readme_content = re.sub(
+              r"()(.*)()",
+              f"\\1\n```\n{tree_content}```\n\\3",
+              readme_content,
+              flags=re.DOTALL
+          )
 
-    # 回到文件开头，写入新内容
-    f.seek(0)
-    f.write(new_readme_content)
-    f.truncate()
-          "
+          # Write the new content back to the README
+          f.seek(0)
+          f.write(new_readme_content)
+          f.truncate()
+          '
 
-      # 第 4 步：提交并推送更改（仅当 README.md 文件发生变化时）
       - name: Commit and push if changed
         run: |
-          git config --local user.email "295871597@qq.com"
+          git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
-          # 使用 'git diff' 检查是否有暂存的更改
-          # 如果没有更改，后续命令不会执行
+          # Only commit and push if there are actual changes
           if ! git diff --staged --quiet; then
             git commit -m "docs: auto-update README tree"
             git push
