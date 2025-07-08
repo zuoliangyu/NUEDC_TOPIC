@@ -9,33 +9,26 @@ jobs:
   update-tree:
     runs-on: ubuntu-latest
     steps:
-      # 步骤 1: 检出仓库代码，以便脚本可以访问
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 步骤 2: 安装 tree 工具并生成目录树文件
       - name: Generate directory tree
         run: |
           sudo apt-get update && sudo apt-get install -y tree
           tree -I '.git|.github|assets' > tree.md
 
-      # 步骤 3: 使用 Python 脚本将目录树更新到 README.md 中
       - name: Update README.md with new tree
         run: |
           python -c '
           import re
           
-          # 读取生成的目录树内容
           with open("tree.md", "r", encoding="utf-8") as tree_file:
               tree_content = tree_file.read()
           
-          # 读取 README 内容
           with open("README.md", "r+", encoding="utf-8") as f:
               readme_content = f.read()
           
               # 使用标准的、不可见的 HTML 注释作为标识符
-              # re.DOTALL 标志让 "." 可以匹配包括换行符在内的任何字符
-              # 替换时保留标识符 \1 和 \3，只更新它们之间的内容 \2
               new_readme_content = re.sub(
                   r"()(.*)()",
                   f"\\1\n```\n{tree_content}```\n\\3",
@@ -43,29 +36,23 @@ jobs:
                   flags=re.DOTALL
               )
           
-              # 将更新后的内容写回 README 文件
               f.seek(0)
               f.write(new_readme_content)
               f.truncate()
           '
 
-      # 步骤 4: 配置 SSH 密钥，以便 Action 可以推送到仓库
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
 
-      # 步骤 5: 检查文件是否有变动，如有则提交并推送
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
-          # 检查暂存区是否有文件变动
           if ! git diff --staged --quiet; then
-            # 提交信息中加入 [skip ci] 可以防止本次推送再次触发 Action，避免无限循环
             git commit -m "docs: auto-update README tree [skip ci]"
-            # 使用 GitHub 上下文变量动态设置远程仓库地址，使其更具通用性
             git remote set-url origin git@github.com:${{ github.repository }}.git
             git push
           else
