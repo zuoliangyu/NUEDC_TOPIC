@@ -52,6 +52,9 @@ jobs:
           ref: 'master'
           path: 'source_files'
 
+      # --- 关键修正 ---
+      # 1. 修正了换行符 \n 被当作纯文本的错误。
+      # 2. 修正了 URL 编码，只对文件名进行编码，解决了 404 问题。
       - name: Generate _sidebar.md
         shell: python
         run: |
@@ -62,32 +65,38 @@ jobs:
           sidebar_file = "_sidebar.md"
           ignore_list = [".github", "assets", "README.md", "tree.bak", ".git"]
 
-          sidebar_content = "* [**回到首页**](/)\\n\\n"
+          # 使用列表来构建侧边栏行，然后用换行符连接它们，这更清晰可靠
+          lines = ["* [**回到首页**](/)"]
+
           year_dirs = sorted(
               [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d)) and d not in ignore_list],
               reverse=True
           )
 
           for year in year_dirs:
-              sidebar_content += f"* **{year}**\\n"
+              lines.append(f"\n* **{year}**") # 在年份前添加换行符
               year_path = os.path.join(source_dir, year)
               files = sorted(os.listdir(year_path))
 
               for filename in files:
                   if filename.startswith("0_") or filename.startswith("."):
                       continue
+                  
                   clean_title = os.path.splitext(filename)[0].replace("_", " ")
-                  file_path = f"{year}/{filename}"
-                  encoded_path = urllib.parse.quote(file_path)
-                  sidebar_content += f"  * [{clean_title}]({encoded_path})\\n"
+                  
+                  # 只对文件名进行 URL 编码，而不是整个路径
+                  encoded_filename = urllib.parse.quote(filename)
+                  link_path = f"{year}/{encoded_filename}"
+
+                  lines.append(f"  * [{clean_title}]({link_path})")
+
+          # 将所有行连接成一个单一的字符串，并以换行符结尾
+          sidebar_content = "\n".join(lines) + "\n"
 
           with open(sidebar_file, "w", encoding="utf-8") as f:
               f.write(sidebar_content)
           print(f"'{sidebar_file}' generated successfully!")
 
-      # --- 关键修正 ---
-      # 1. 复制 master 分支的内容，并排除 .git 目录以避免子模块问题。
-      # 2. 复制完成后，立即删除临时的 source_files 目录，从根本上解决路径冲突。
       - name: Prepare deployment directory
         run: |
           rsync -av --exclude='.git' source_files/ .
