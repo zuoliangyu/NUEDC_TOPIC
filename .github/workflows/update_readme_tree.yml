@@ -23,8 +23,8 @@ jobs:
         with:
           # --- 核心修正在这里 ---
           # 为标记加上单引号，确保它们被当作纯字符串处理
-          start-marker: '<tree start>'
-          end-marker: '<tree end>'
+          start-marker: <treestart>
+          end-marker: <treeend>
           # --------------------
           
           # 忽略不需要出现在目录树中的文件夹
