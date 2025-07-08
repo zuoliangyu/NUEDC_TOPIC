@@ -86,10 +86,12 @@ jobs:
           print(f"'{sidebar_file}' generated successfully!")
 
       # --- 关键修正 ---
-      # 使用 rsync 时，通过 --exclude='.git' 参数排除掉嵌套的 .git 目录，
-      # 防止部署工具将其误认为 Git 子模块 (submodule)。
+      # 1. 复制 master 分支的内容，并排除 .git 目录以避免子模块问题。
+      # 2. 复制完成后，立即删除临时的 source_files 目录，从根本上解决路径冲突。
       - name: Prepare deployment directory
-        run: rsync -av --exclude='.git' source_files/ .
+        run: |
+          rsync -av --exclude='.git' source_files/ .
+          rm -rf source_files
 
       - name: List files for deployment
         run: ls -R
