@@ -37,7 +37,7 @@ jobs:
           git add README.md
           # 检查是否有实际更改，避免创建空的 commit
           if ! git diff --staged --quiet; then
-            git commit -m "docs: auto-update README tree [skip ci]"
+            git commit -m "docs: auto-update README tree"
             git push
           else
             echo "No changes to commit."
