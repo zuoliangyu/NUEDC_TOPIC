@@ -53,8 +53,8 @@ jobs:
           path: 'source_files'
 
       # --- 关键修正 ---
-      # 1. 修正了换行符 \n 被当作纯文本的错误。
-      # 2. 修正了 URL 编码，只对文件名进行编码，解决了 404 问题。
+      # 1. 链接格式改回 Docsify 的标准相对路径格式（例如：#/2024/文件名.pdf），以便 PDF 预览插件可以识别并接管。
+      # 2. 这需要您手动在 docsify-source 分支的 index.html 中添加预览插件的脚本。
       - name: Generate _sidebar.md
         shell: python
         run: |
@@ -65,7 +65,6 @@ jobs:
           sidebar_file = "_sidebar.md"
           ignore_list = [".github", "assets", "README.md", "tree.bak", ".git"]
 
-          # 使用列表来构建侧边栏行，然后用换行符连接它们，这更清晰可靠
           lines = ["* [**回到首页**](/)"]
 
           year_dirs = sorted(
@@ -74,7 +73,7 @@ jobs:
           )
 
           for year in year_dirs:
-              lines.append(f"\n* **{year}**") # 在年份前添加换行符
+              lines.append(f"* **{year}**")
               year_path = os.path.join(source_dir, year)
               files = sorted(os.listdir(year_path))
 
@@ -84,13 +83,11 @@ jobs:
                   
                   clean_title = os.path.splitext(filename)[0].replace("_", " ")
                   
-                  # 只对文件名进行 URL 编码，而不是整个路径
-                  encoded_filename = urllib.parse.quote(filename)
-                  link_path = f"{year}/{encoded_filename}"
+                  # 恢复为 Docsify 的标准路由格式，让插件能够处理
+                  link_path = f"#/{year}/{filename}"
 
                   lines.append(f"  * [{clean_title}]({link_path})")
 
-          # 将所有行连接成一个单一的字符串，并以换行符结尾
           sidebar_content = "\n".join(lines) + "\n"
 
           with open(sidebar_file, "w", encoding="utf-8") as f:
