@@ -3,15 +3,14 @@ name: Update README Tree
 on:
   push:
     branches:
-      - master  # 触发分支改为 master
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    # 使用 permissions 替代 SSH 密钥，更安全、更简单
     permissions:
-      contents: write # 授予工作流向仓库写入内容的权限
+      contents: write
 
     steps:
       # 步骤 1: 检出你的代码
@@ -22,9 +21,12 @@ jobs:
       - name: Generate README Tree
         uses: RavelloH/readme-tree@v1.1.0
         with:
-          # 核心配置：指定你的开始和结束标记
+          # --- 核心修正在这里 ---
+          # 为标记加上单引号，确保它们被当作纯字符串处理
           start-marker: '<tree start>'
           end-marker: '<tree end>'
+          # --------------------
+          
           # 忽略不需要出现在目录树中的文件夹
           ignore: '.git,.github,assets'
 
@@ -33,11 +35,10 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # 添加可能已更改的 README.md 文件
           git add README.md
           # 检查是否有实际更改，避免创建空的 commit
           if ! git diff --staged --quiet; then
-            git commit -m "docs: auto-update README tree"
+            git commit -m "docs: auto-update README tree [skip ci]"
             git push
           else
             echo "No changes to commit."
