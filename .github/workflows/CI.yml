@@ -1,0 +1,102 @@
+name: Update Readme Tree and Deploy Docsify Site
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+# 明确声明工作流所需的权限
+permissions:
+  contents: write
+
+jobs:
+  # --- 作业一：更新 README 中的目录树 ---
+  update-readme-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: 'master'
+
+      - name: Generate Readme Tree
+        uses: RavelloH/readme-tree@v1.1.0
+        with:
+          showsize: "no"
+          args: --ignore ".github,tree.bak"
+
+      - name: Commit updated README.md
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(readme): Auto-update file tree [skip ci]"
+          branch: master
+          file_pattern: README.md
+
+  # --- 作业二：构建并部署 Docsify 网站 ---
+  deploy-docsify-site:
+    runs-on: ubuntu-latest
+    # 使用 needs 来确保它在更新完 README 后再执行
+    needs: update-readme-tree
+    steps:
+      - name: Checkout docsify-source branch (template)
+        uses: actions/checkout@v4
+        with:
+          ref: 'docsify-source'
+
+      - name: Checkout master branch (content)
+        uses: actions/checkout@v4
+        with:
+          ref: 'master'
+          path: 'source_files'
+
+      # --- 修正部分 ---
+      # 错误原因：直接使用 `python3 -c '...'` 会因为 YAML 的缩进而导致 Python 脚本产生 `IndentationError`。
+      # 修正方法：使用 `shell: python` 让 GitHub Actions 直接用 Python 解释器运行脚本，
+      # 这样既能保持代码可读性，又能避免所有缩进和转义问题。
+      - name: Generate _sidebar.md
+        shell: python
+        run: |
+          import os
+          import urllib.parse
+
+          source_dir = "source_files"
+          sidebar_file = "_sidebar.md"
+          ignore_list = [".github", "assets", "README.md", "tree.bak", ".git"]
+
+          sidebar_content = "* [**回到首页**](/)\\n\\n"
+          year_dirs = sorted(
+              [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d)) and d not in ignore_list],
+              reverse=True
+          )
+
+          for year in year_dirs:
+              sidebar_content += f"* **{year}**\\n"
+              year_path = os.path.join(source_dir, year)
+              files = sorted(os.listdir(year_path))
+
+              for filename in files:
+                  if filename.startswith("0_") or filename.startswith("."):
+                      continue
+                  clean_title = os.path.splitext(filename)[0].replace("_", " ")
+                  file_path = f"{year}/{filename}"
+                  encoded_path = urllib.parse.quote(file_path)
+                  sidebar_content += f"  * [{clean_title}]({encoded_path})\\n"
+
+          with open(sidebar_file, "w", encoding="utf-8") as f:
+              f.write(sidebar_content)
+          print(f"'{sidebar_file}' generated successfully!")
+
+      - name: Prepare deployment directory
+        run: rsync -av source_files/ .
+
+      - name: List files for deployment
+        run: ls -R
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: .
+          force_orphan: true
