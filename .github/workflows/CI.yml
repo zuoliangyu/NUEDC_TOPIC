@@ -85,8 +85,11 @@ jobs:
               f.write(sidebar_content)
           print(f"'{sidebar_file}' generated successfully!")
 
+      # --- 关键修正 ---
+      # 使用 rsync 时，通过 --exclude='.git' 参数排除掉嵌套的 .git 目录，
+      # 防止部署工具将其误认为 Git 子模块 (submodule)。
       - name: Prepare deployment directory
-        run: rsync -av source_files/ .
+        run: rsync -av --exclude='.git' source_files/ .
 
       - name: List files for deployment
         run: ls -R
