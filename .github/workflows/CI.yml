@@ -9,6 +9,8 @@ on:
 # 明确声明工作流所需的权限
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   # --- 作业一：更新 README 中的目录树 ---
@@ -50,10 +52,6 @@ jobs:
           ref: 'master'
           path: 'source_files'
 
-      # --- 修正部分 ---
-      # 错误原因：直接使用 `python3 -c '...'` 会因为 YAML 的缩进而导致 Python 脚本产生 `IndentationError`。
-      # 修正方法：使用 `shell: python` 让 GitHub Actions 直接用 Python 解释器运行脚本，
-      # 这样既能保持代码可读性，又能避免所有缩进和转义问题。
       - name: Generate _sidebar.md
         shell: python
         run: |
