@@ -1,23 +1,55 @@
-# --- 作业二：构建并部署 Docsify 网站 ---
-  # 这个作业会在 "update-readme-tree" 成功后运行
+name: Update Readme Tree and Deploy Docsify Site
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+# 明确声明工作流所需的权限
+permissions:
+  contents: write
+
+jobs:
+  # --- 作业一：更新 README 中的目录树 ---
+  update-readme-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: 'master'
+
+      - name: Generate Readme Tree
+        uses: RavelloH/readme-tree@v1.1.0
+        with:
+          showsize: "no"
+          args: --ignore ".github,tree.bak"
+
+      - name: Commit updated README.md
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(readme): Auto-update file tree [skip ci]"
+          branch: master
+          file_pattern: README.md
+
+  # --- 作业二：构建并部署 Docsify 网站 ---
   deploy-docsify-site:
     runs-on: ubuntu-latest
+    # 使用 needs 来确保它在更新完 README 后再执行
     needs: update-readme-tree
     steps:
-      # 步骤 2.1: 检出 docsify-source 分支，获取网站模板
       - name: Checkout docsify-source branch (template)
         uses: actions/checkout@v4
         with:
-          ref: 'docsify-source' # 假设您的模板在这个分支
+          ref: 'docsify-source'
 
-      # 步骤 2.2: 检出 master 分支，获取所有源文件
       - name: Checkout master branch (content)
         uses: actions/checkout@v4
         with:
           ref: 'master'
           path: 'source_files'
 
-      # 步骤 2.3: 运行 Python 脚本，扫描源文件并自动生成 _sidebar.md
       - name: Generate _sidebar.md
         run: |
           python3 -c '
@@ -51,15 +83,12 @@ with open(sidebar_file, "w", encoding="utf-8") as f:
     f.write(sidebar_content)
 print(f"''{sidebar_file}'' generated successfully!")
 '
-      # 步骤 2.4: 准备部署目录
       - name: Prepare deployment directory
         run: rsync -av source_files/ .
 
-      # 步骤 2.5: 部署前列出文件，用于调试
       - name: List files for deployment
         run: ls -R
 
-      # 步骤 2.6: 部署到 gh-pages 分支
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
