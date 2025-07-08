@@ -3,47 +3,49 @@ name: Update README Tree
 on:
   push:
     branches:
-      - master # 或者你的主分支名，如 master
+      - master  # 已将分支修改为 master
 
 jobs:
   update-tree:
     runs-on: ubuntu-latest
     steps:
+      # 步骤 1: 检出仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 步骤 2: 生成目录树
       - name: Generate directory tree
         run: |
           tree -I '.git|.github' > tree.md
 
+      # 步骤 3: 更新 README 文件
       - name: Update README.md with new tree
         run: |
           python -c '
           import re
-
-          # Open the README file once and perform all operations within this block
           with open("README.md", "r+", encoding="utf-8") as f:
-              # 1. Read the original content of README.md
               readme_content = f.read()
-              
-              # 2. Read the content of the generated tree file
               with open("tree.md", "r", encoding="utf-8") as tree_file:
                   tree_content = tree_file.read()
-
-              # 3. Use regex to find the markers and create the new content
               new_readme_content = re.sub(
                   r"()(.*)()",
                   f"\\1\n```\n{tree_content}```\n\\3",
                   readme_content,
                   flags=re.DOTALL
               )
-              
-              # 4. Go back to the beginning of the file and write the new content
               f.seek(0)
               f.write(new_readme_content)
               f.truncate()
           '
 
+      # 新增步骤 4: 设置 SSH 密钥
+      # 这一步会从你刚才创建的 secret 中读取私钥，并配置好 SSH 环境
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+
+      # 修改步骤 5: 使用 SSH 提交并推送
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
@@ -51,6 +53,8 @@ jobs:
           git add README.md
           if ! git diff --staged --quiet; then
             git commit -m "docs: auto-update README tree"
+            # 在推送前，将远程仓库地址设置为 SSH 格式
+            git remote set-url origin git@github.com:zuoliangyu/NUEDC_TOPIC.git
             git push
           else
             echo "No changes to commit."
