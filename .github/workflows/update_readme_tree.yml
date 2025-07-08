@@ -33,7 +33,7 @@ jobs:
       # 步骤 3: 提交并推送更改 (安全版本)
       - name: Commit and Push Changes
         run: |
-          git config --local user.email "action@github.com"
+          git config --local user.email "zuolan1102@qq.com"
           git config --local user.name "GitHub Action"
           git add README.md
           # 检查是否有实际更改，避免创建空的 commit
