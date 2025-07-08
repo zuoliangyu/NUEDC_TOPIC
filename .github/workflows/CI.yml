@@ -50,39 +50,43 @@ jobs:
           ref: 'master'
           path: 'source_files'
 
+      # --- 修正部分 ---
+      # 错误原因：直接使用 `python3 -c '...'` 会因为 YAML 的缩进而导致 Python 脚本产生 `IndentationError`。
+      # 修正方法：使用 `shell: python` 让 GitHub Actions 直接用 Python 解释器运行脚本，
+      # 这样既能保持代码可读性，又能避免所有缩进和转义问题。
       - name: Generate _sidebar.md
+        shell: python
         run: |
-          python3 -c '
-import os
-import urllib.parse
+          import os
+          import urllib.parse
 
-source_dir = "source_files"
-sidebar_file = "_sidebar.md"
-ignore_list = [".github", "assets", "README.md", "tree.bak", ".git"]
+          source_dir = "source_files"
+          sidebar_file = "_sidebar.md"
+          ignore_list = [".github", "assets", "README.md", "tree.bak", ".git"]
 
-sidebar_content = "* [**回到首页**](/)\\n\\n"
-year_dirs = sorted(
-    [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d)) and d not in ignore_list],
-    reverse=True
-)
+          sidebar_content = "* [**回到首页**](/)\\n\\n"
+          year_dirs = sorted(
+              [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d)) and d not in ignore_list],
+              reverse=True
+          )
 
-for year in year_dirs:
-    sidebar_content += f"* **{year}**\\n"
-    year_path = os.path.join(source_dir, year)
-    files = sorted(os.listdir(year_path))
+          for year in year_dirs:
+              sidebar_content += f"* **{year}**\\n"
+              year_path = os.path.join(source_dir, year)
+              files = sorted(os.listdir(year_path))
 
-    for filename in files:
-        if filename.startswith("0_") or filename.startswith("."):
-            continue
-        clean_title = os.path.splitext(filename)[0].replace("_", " ")
-        file_path = f"{year}/{filename}"
-        encoded_path = urllib.parse.quote(file_path)
-        sidebar_content += f"  * [{clean_title}]({encoded_path})\\n"
+              for filename in files:
+                  if filename.startswith("0_") or filename.startswith("."):
+                      continue
+                  clean_title = os.path.splitext(filename)[0].replace("_", " ")
+                  file_path = f"{year}/{filename}"
+                  encoded_path = urllib.parse.quote(file_path)
+                  sidebar_content += f"  * [{clean_title}]({encoded_path})\\n"
 
-with open(sidebar_file, "w", encoding="utf-8") as f:
-    f.write(sidebar_content)
-print(f"''{sidebar_file}'' generated successfully!")
-'
+          with open(sidebar_file, "w", encoding="utf-8") as f:
+              f.write(sidebar_content)
+          print(f"'{sidebar_file}' generated successfully!")
+
       - name: Prepare deployment directory
         run: rsync -av source_files/ .
 
