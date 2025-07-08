@@ -1,40 +1,103 @@
-name: CI
+name: Update Readme Tree and Deploy Docsify Site
 
+# 触发条件: 当 master 分支有推送时
 on:
   push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+    branches:
+      - master # 注意：GitHub 新建仓库默认为 main，请确保这里是 master
+  workflow_dispatch:
 
 jobs:
-  build:
+  # --- 作业一：更新 README 中的目录树 ---
+  update-readme-tree:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
-    strategy:
-      fail-fast: false
-
     steps:
-      - name: Checking out
-        uses: actions/checkout@v3
+      # 步骤 1.1: 检出 master 分支的代码
+      - name: Checkout master branch
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: 'master'
 
-      - name: Tree README
+      # 步骤 1.2: 运行 readme-tree Action 来更新 README.md
+      - name: Generate Readme Tree
         uses: RavelloH/readme-tree@v1.1.0
         with:
           showsize: "no"
+          # 您可以添加其他参数，比如 --ignore 来忽略 .github 文件夹
+          args: --ignore ".github,tree.bak"
 
-      - name: commit
-        continue-on-error: True
+      # 步骤 1.3: 将更新后的 README.md 提交回 master 分支
+      - name: Commit updated README.md
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(readme): Auto-update file tree"
+          branch: master
+          file_pattern: README.md # 只提交 README.md 的变动
+
+  # --- 作业二：构建并部署 Docsify 网站 ---
+  # 这个作业会在 "update-readme-tree" 成功后运行
+  deploy-docsify-site:
+    runs-on: ubuntu-latest
+    # 使用 needs 来确保它在更新完 README 后再执行
+    needs: update-readme-tree
+    steps:
+      # 步骤 2.1: 检出 docsify-source 分支，获取网站模板
+      - name: Checkout docsify-source branch (template)
+        uses: actions/checkout@v4
+        with:
+          ref: 'docsify-source' # 假设您的模板在这个分支
+
+      # 步骤 2.2: 检出 master 分支，获取所有源文件
+      # 此时 master 分支的 README 已经是最新版了
+      - name: Checkout master branch (content)
+        uses: actions/checkout@v4
+        with:
+          ref: 'master'
+          path: 'source_files'
+
+      # 步骤 2.3: 运行 Python 脚本，扫描源文件并自动生成 _sidebar.md
+      - name: Generate _sidebar.md
         run: |
-          git init
-          git pull
-          git config --local user.email "actions@github.com"
-          git config --local user.name "github-actions"
-          git add .
-          git commit -m "[Readme-Tree]`date '+%Y-%m-%d %H:%M:%S'`" || exit
-          git status
-          git push -f
+          python3 -c "
+      import os
+      import urllib.parse
+
+      source_dir = 'source_files'
+      sidebar_file = '_sidebar.md'
+      ignore_list = ['.github', 'assets', 'README.md', 'tree.bak', '.git']
+
+      sidebar_content = '* [**回到首页**](/)\\n\\n'
+      year_dirs = sorted(
+          [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d)) and d not in ignore_list],
+          reverse=True
+      )
+
+      for year in year_dirs:
+          sidebar_content += f'* **{year}**\\n'
+          year_path = os.path.join(source_dir, year)
+          files = sorted(os.listdir(year_path))
+
+          for filename in files:
+              if filename.startswith('0_') or filename.startswith('.'):
+                  continue
+              clean_title = os.path.splitext(filename)[0].replace('_', ' ')
+              file_path = f'{year}/{filename}'
+              encoded_path = urllib.parse.quote(file_path)
+              sidebar_content += f'  * [{clean_title}]({encoded_path})\\n'
+
+      with open(sidebar_file, 'w', encoding='utf-8') as f:
+          f.write(sidebar_content)
+      print(f'\'{sidebar_file}\' generated successfully!')
+      "
+      # 步骤 2.4: 准备部署目录
+      - name: Prepare deployment directory
+        run: rsync -av source_files/ .
+
+      # 步骤 2.5: 部署到 gh-pages 分支
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: .
+          force_orphan: true
