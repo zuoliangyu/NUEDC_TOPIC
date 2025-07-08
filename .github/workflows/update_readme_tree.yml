@@ -9,14 +9,18 @@ jobs:
   update-tree:
     runs-on: ubuntu-latest
     steps:
+      # 步骤 1: 检出仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 步骤 2: 生成目录树
       - name: Generate directory tree
         run: |
           sudo apt-get update && sudo apt-get install -y tree
+          # 忽略 .git, .github 和 assets 目录
           tree -I '.git|.github|assets' > tree.md
 
+      # 步骤 3: 更新 README 文件
       - name: Update README.md with new tree
         run: |
           python -c '
@@ -28,10 +32,11 @@ jobs:
           with open("README.md", "r+", encoding="utf-8") as f:
               readme_content = f.read()
           
-              # 使用标准的、不可见的 HTML 注释作为标识符
+              # 核心修改：严格按照您的要求，使用 <tree start> 和 <tree end> 作为标识符
+              # 这个脚本会保留标识符，只更新它们之间的内容
               new_readme_content = re.sub(
-                  r"()(.*)()",
-                  f"\\1\n```\n{tree_content}```\n\\3",
+                  r"(<tree start>)(.*)(<tree end>)",
+                  f"\\1\n\n```\n{tree_content}```\n\n\\3",
                   readme_content,
                   flags=re.DOTALL
               )
@@ -41,11 +46,13 @@ jobs:
               f.truncate()
           '
 
+      # 步骤 4: 设置 SSH 密钥
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
 
+      # 步骤 5: 提交并推送更改
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
