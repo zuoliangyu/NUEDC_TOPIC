@@ -21,11 +21,10 @@ jobs:
       - name: Generate README Tree
         uses: RavelloH/readme-tree@v1.1.0
         with:
-          # --- 核心修正在这里 ---
-          # 为标记加上单引号，确保它们被当作纯字符串处理
-          start-marker: <treestart>
-          end-marker: <treeend>
-          # --------------------
+          # --- 核心修正 1：必须加上单引号 ---
+          start-marker: '<treestart>'
+          end-marker: '<treeend>'
+          # --------------------------------
           
           # 忽略不需要出现在目录树中的文件夹
           ignore: '.git,.github,assets'
@@ -33,12 +32,13 @@ jobs:
       # 步骤 3: 提交并推送更改 (安全版本)
       - name: Commit and Push Changes
         run: |
-          git config --local user.email "zuolan1102@qq.com"
+          git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
-          # 检查是否有实际更改，避免创建空的 commit
           if ! git diff --staged --quiet; then
+            # --- 核心修正 2：加回 [skip ci] 防止循环 ---
             git commit -m "docs: auto-update README tree [skip ci]"
+            # ----------------------------------------
             git push
           else
             echo "No changes to commit."
