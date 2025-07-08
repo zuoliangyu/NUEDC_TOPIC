@@ -1,27 +1,111 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <title>NUEDC 历年真题库</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="全国大学生电子设计竞赛(NUEDC)历年真题库">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-</head>
-<body>
-  <div id="app">加载中...</div>
-  <script>
-    // Docsify 的配置
-    window.$docsify = {
-      name: 'NUEDC 真题库',
-      repo: 'https://github.com/zuoliangyu/NUEDC_TOPIC', // 替换为你的仓库地址
-      loadSidebar: true, // 加载侧边栏
-      subMaxLevel: 2,    // 侧边栏目录最大深度
-      alias: {
-        '/.*/_sidebar.md': '/_sidebar.md' // 所有页面共享一个侧边栏
-      }
-    }
-  </script>
-  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-</body>
-</html>
+name: Update Readme Tree and Deploy Docsify Site
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+# 明确声明工作流所需的权限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # --- 作业一：更新 README 中的目录树 ---
+  update-readme-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: 'master'
+
+      - name: Generate Readme Tree
+        uses: RavelloH/readme-tree@v1.1.0
+        with:
+          showsize: "no"
+          args: --ignore ".github,tree.bak"
+
+      - name: Commit updated README.md
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(readme): Auto-update file tree [skip ci]"
+          branch: master
+          file_pattern: README.md
+
+  # --- 作业二：构建并部署 Docsify 网站 ---
+  deploy-docsify-site:
+    runs-on: ubuntu-latest
+    # 使用 needs 来确保它在更新完 README 后再执行
+    needs: update-readme-tree
+    steps:
+      - name: Checkout docsify-source branch (template)
+        uses: actions/checkout@v4
+        with:
+          ref: 'docsify-source'
+
+      - name: Checkout master branch (content)
+        uses: actions/checkout@v4
+        with:
+          ref: 'master'
+          path: 'source_files'
+
+      # --- 关键修正 ---
+      # 1. 链接格式改回 Docsify 的标准相对路径格式（例如：#/2024/文件名.pdf），以便 PDF 预览插件可以识别并接管。
+      # 2. 这需要您手动在 docsify-source 分支的 index.html 中添加预览插件的脚本。
+      - name: Generate _sidebar.md
+        shell: python
+        run: |
+          import os
+          import urllib.parse
+
+          source_dir = "source_files"
+          sidebar_file = "_sidebar.md"
+          ignore_list = [".github", "assets", "README.md", "tree.bak", ".git"]
+
+          lines = ["* [**回到首页**](/)"]
+
+          year_dirs = sorted(
+              [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d)) and d not in ignore_list],
+              reverse=True
+          )
+
+          for year in year_dirs:
+              lines.append(f"* **{year}**")
+              year_path = os.path.join(source_dir, year)
+              files = sorted(os.listdir(year_path))
+
+              for filename in files:
+                  if filename.startswith("0_") or filename.startswith("."):
+                      continue
+                  
+                  clean_title = os.path.splitext(filename)[0].replace("_", " ")
+                  
+                  # 恢复为 Docsify 的标准路由格式，让插件能够处理
+                  link_path = f"#/{year}/{filename}"
+
+                  lines.append(f"  * [{clean_title}]({link_path})")
+
+          sidebar_content = "\n".join(lines) + "\n"
+
+          with open(sidebar_file, "w", encoding="utf-8") as f:
+              f.write(sidebar_content)
+          print(f"'{sidebar_file}' generated successfully!")
+
+      - name: Prepare deployment directory
+        run: |
+          rsync -av --exclude='.git' source_files/ .
+          rm -rf source_files
+
+      - name: List files for deployment
+        run: ls -R
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: .
+          force_orphan: true
