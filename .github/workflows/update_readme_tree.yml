@@ -16,49 +16,59 @@ jobs:
       # 步骤 2: 生成目录树
       - name: Generate directory tree
         run: |
-          tree --ascii -I '.git|.github' > tree.md
+          # 安装 tree 命令 (ubuntu-latest 默认自带，此步为保险起见)
+          sudo apt-get install -y tree
+          # 生成目录树, 忽略 .git 和 .github 目录
+          tree -I '.git|.github' > tree.md
 
-      # 步骤 3: 更新 README 文件 (使用更稳健的替换方法)
+      # 步骤 3: 更新 README 文件 (已修正)
       - name: Update README.md with new tree
         run: |
           python -c '
           import re
+          # 读取生成的目录树内容
+          with open("tree.md", "r", encoding="utf-8") as tree_file:
+              tree_content = tree_file.read()
+          
+          # 读取 README 内容
           with open("README.md", "r+", encoding="utf-8") as f:
               readme_content = f.read()
-              with open("tree.md", "r", encoding="utf-8") as tree_file:
-                  # 使用 .strip() 清理 tree 输出内容，去除首尾多余的空白
-                  tree_content = tree_file.read().strip()
-              
-              # 使用 lambda 函数进行替换，这是最安全稳健的方式
-              # 确保代码块标记 ``` 能被正确添加
-              replacement_text = f"\n```\n{tree_content}\n```\n"
+          
+              # 使用修正后的正则表达式查找标识符并替换内容
+              # re.DOTALL 使得 "." 可以匹配换行符
               new_readme_content = re.sub(
-                  r"(<repo tree start>)(.*)(<repo tree end>)",
-                  lambda m: m.group(1) + replacement_text + m.group(3),
+                  r"()(.*)()",
+                  f"\\1\n```\n{tree_content}```\n\\3",
                   readme_content,
                   flags=re.DOTALL
               )
-              
+          
+              # 将更新后的内容写回 README
               f.seek(0)
               f.write(new_readme_content)
               f.truncate()
           '
 
-      # 步骤 4: 设置 SSH 密钥
+      # 步骤 4: 设置 SSH 密钥 (用于推送)
+      # 确保你已经在仓库的 Settings > Secrets and variables > Actions 中
+      # 创建了一个名为 ACTIONS_DEPLOY_KEY 的 secret, 其值为部署私钥
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
 
-      # 步骤 5: 使用 SSH 提交并推送
+      # 步骤 5: 提交并推送更改 (已优化)
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
+          # 检查是否有暂存的更改
           if ! git diff --staged --quiet; then
-            git commit -m "docs: auto-update README tree"
-            git remote set-url origin git@github.com:zuoliangyu/NUEDC_TOPIC.git
+            # 优化 1: 提交信息中加入 [skip ci] 避免无限循环
+            git commit -m "docs: auto-update README tree [skip ci]"
+            # 优化 2: 使用变量代替硬编码的仓库地址
+            git remote set-url origin git@github.com:${{ github.repository }}.git
             git push
           else
             echo "No changes to commit."
