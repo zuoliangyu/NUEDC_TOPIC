@@ -1,0 +1,121 @@
+name: Update README Tree
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - '真题/**'
+      - '综合测评/**'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  update-tree:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Generate directory tree
+      run: |
+        # 安装 tree 命令（如果不存在）
+        sudo apt-get update && sudo apt-get install -y tree
+        
+        # 生成目录树，只包含真题和综合测评目录，排除 .git 和 .github 目录
+        echo "生成目录树..."
+        tree -a -I '.git*|node_modules|*.log' --dirsfirst --charset=ascii > temp_tree.txt
+        
+        # 创建格式化的目录树输出
+        cat > formatted_tree.txt << 'EOF'
+        ```
+        EOF
+        cat temp_tree.txt >> formatted_tree.txt
+        cat >> formatted_tree.txt << 'EOF'
+        ```
+        
+        ## 📊 统计信息
+        
+        EOF
+        
+        # 统计各个年份的题目数量
+        echo "### 📅 年份统计" >> formatted_tree.txt
+        echo "" >> formatted_tree.txt
+        for year in $(ls 真题/ | grep -E '^[0-9]{4}$' | sort -n); do
+          count=$(find "真题/$year" -type f \( -name "*.pdf" -o -name "*.doc" -o -name "*.docx" \) | wc -l)
+          echo "- **$year年**: $count 个题目" >> formatted_tree.txt
+        done
+        
+        echo "" >> formatted_tree.txt
+        echo "### 📝 题目类型统计" >> formatted_tree.txt
+        echo "" >> formatted_tree.txt
+        
+        # 统计文件类型
+        pdf_count=$(find 真题/ -name "*.pdf" | wc -l)
+        doc_count=$(find 真题/ -name "*.doc" | wc -l) 
+        docx_count=$(find 真题/ -name "*.docx" | wc -l)
+        xlsx_count=$(find 真题/ -name "*.xlsx" | wc -l)
+        
+        echo "- **PDF文件**: $pdf_count 个" >> formatted_tree.txt
+        echo "- **DOC文件**: $doc_count 个" >> formatted_tree.txt  
+        echo "- **DOCX文件**: $docx_count 个" >> formatted_tree.txt
+        echo "- **XLSX文件**: $xlsx_count 个" >> formatted_tree.txt
+        
+        # 统计综合测评题目
+        eval_count=$(find 综合测评/ -name "*.pdf" | wc -l)
+        echo "- **综合测评**: $eval_count 个" >> formatted_tree.txt
+        
+        echo "" >> formatted_tree.txt
+        echo "> 📅 最后更新: $(date '+%Y-%m-%d %H:%M:%S') UTC" >> formatted_tree.txt
+        
+        # 清理临时文件
+        rm temp_tree.txt
+        
+    - name: Update README
+      run: |
+        # 使用 Python 脚本来替换 README.md 中的内容
+        python3 << 'EOF'
+        import re
+        
+        # 读取当前的 README.md
+        with open('README.md', 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 读取生成的目录树
+        with open('formatted_tree.txt', 'r', encoding='utf-8') as f:
+            tree_content = f.read()
+        
+        # 使用正则表达式替换 readme-tree start 和 end 之间的内容
+        pattern = r'(<!-- readme-tree start -->).*?(<!-- readme-tree end -->)'
+        replacement = r'\1\n\n' + tree_content + r'\n\2'
+        
+        new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        
+        # 写回 README.md
+        with open('README.md', 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        
+        print("README.md 已更新")
+        EOF
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # 检查是否有变化
+        if git diff --quiet; then
+          echo "没有检测到变化，跳过提交"
+        else
+          git add README.md
+          git commit -m "🤖 自动更新目录树结构
+
+          📊 更新统计信息
+          📅 更新时间: $(date '+%Y-%m-%d %H:%M:%S')
+          
+          🤖 Generated with GitHub Actions"
+          git push
+          echo "README.md 已更新并推送"
+        fi
