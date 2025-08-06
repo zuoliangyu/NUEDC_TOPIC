@@ -137,59 +137,10 @@ jobs:
                   noData: '没有找到结果',
                   depth: 6
                 },
-                sidebarDisplayLevel: 1,
                 plugins: [
                   function(hook, vm) {
                     hook.beforeEach(function(html) {
                       return html + '\n\n----\n\n<footer>© 2025 全国大学生电子设计竞赛历年真题 | 更新时间: ' + new Date().toLocaleString('zh-CN') + '</footer>';
-                    });
-                    
-                    // 添加折叠功能
-                    hook.doneEach(function() {
-                      setTimeout(function() {
-                        const sidebarNav = document.querySelector('.sidebar-nav');
-                        if (sidebarNav) {
-                          // 查找所有一级菜单项
-                          const topLevelItems = sidebarNav.querySelectorAll('li');
-                          
-                          topLevelItems.forEach(function(item) {
-                            const link = item.querySelector('a');
-                            const subList = item.querySelector('ul');
-                            
-                            if (link && subList) {
-                              const linkText = link.textContent.trim();
-                              
-                              // 为历年真题和综合测评添加折叠功能
-                              if (linkText.includes('📚 历年真题') || linkText.includes('🏆 综合测评')) {
-                                // 默认隐藏子菜单
-                                subList.style.display = 'none';
-                                
-                                // 添加展开/折叠图标
-                                const icon = document.createElement('span');
-                                icon.innerHTML = ' ▶';
-                                icon.style.cursor = 'pointer';
-                                icon.style.fontSize = '12px';
-                                icon.style.marginLeft = '5px';
-                                link.appendChild(icon);
-                                
-                                // 添加点击事件
-                                link.addEventListener('click', function(e) {
-                                  if (e.target === icon || e.target === link) {
-                                    e.preventDefault();
-                                    if (subList.style.display === 'none') {
-                                      subList.style.display = 'block';
-                                      icon.innerHTML = ' ▼';
-                                    } else {
-                                      subList.style.display = 'none';
-                                      icon.innerHTML = ' ▶';
-                                    }
-                                  }
-                                });
-                              }
-                            }
-                          });
-                        }
-                      }, 100);
                     });
                   }
                 ]
@@ -216,21 +167,29 @@ jobs:
           cat > dist/_sidebar.md << 'EOF'
           * [🏠 首页](/)
           
-          * 📚 历年真题
+          <details>
+          <summary>📚 历年真题</summary>
+          
           EOF
           
           # 动态生成年份链接
           for year_dir in dist/真题/*/; do
             if [ -d "$year_dir" ]; then
               year=$(basename "$year_dir")
-              echo "  * [$year 年](真题/$year/)" >> dist/_sidebar.md
+              echo "* [$year 年](真题/$year/)" >> dist/_sidebar.md
             fi
           done
           
           cat >> dist/_sidebar.md << 'EOF'
           
-          * 🏆 综合测评
-            * [综合测评题目](综合测评/)
+          </details>
+          
+          <details>
+          <summary>🏆 综合测评</summary>
+          
+          * [综合测评题目](综合测评/)
+          
+          </details>
           
           * 📖 使用说明
             * [在线访问功能](#在线访问)
