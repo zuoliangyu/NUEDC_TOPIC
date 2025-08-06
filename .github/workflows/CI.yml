@@ -59,9 +59,7 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.should_build == 'true'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    environment: github-pages
     
     steps:
       # 第一步：检出source分支（包含VitePress配置）
