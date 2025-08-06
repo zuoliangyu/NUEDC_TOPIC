@@ -81,8 +81,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: source/package-lock.json
 
       # 第四步：同步资源文件到source分支
       - name: 🔄 同步资源文件
@@ -115,6 +113,14 @@ jobs:
           echo "✅ 文档页面生成完成"
 
       # 第六步：安装依赖并构建
+      - name: 📦 设置npm缓存
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('source/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: 📦 安装依赖
         run: |
           cd source
