@@ -21,11 +21,6 @@
 
 ```
 .
-|-- .claude
-|   `-- settings.local.json
-|-- assets
-|   `-- LOGO
-|       `-- NUEDC_LOGO.jpg
 |-- 真题
 |   |-- 1994-2007
 |   |   `-- 全国大学生电子设计大赛历年题目.pdf
@@ -221,7 +216,7 @@
 |-- README.md
 `-- temp_tree.txt
 
-24 directories, 176 files
+21 directories, 174 files
 ```
 
 ## 📊 统计信息
@@ -254,6 +249,6 @@
 - **XLSX文件**: 5 个
 - **综合测评**: 6 个
 
-> 📅 最后更新: 2025-08-06 17:11:49 UTC
+> 📅 最后更新: 2025-08-06 17:17:00 UTC
 
 <!-- readme-tree end -->
