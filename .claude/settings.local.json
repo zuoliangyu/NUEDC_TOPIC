@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(touch:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

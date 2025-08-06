@@ -1,15 +1,12 @@
-name: 📚 全国大学生电子设计竞赛真题 - 自动更新与部署
+name: 🚀 电子设计竞赛真题库 - 三分支自动部署
 
 on:
   push:
     branches:
-      - master
+      - master  # 监听master分支的PDF文件变更
     paths-ignore:
-      - '**.md'
+      - 'README.md'
       - '.github/**'
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -18,224 +15,212 @@ on:
         default: false
         type: boolean
 
-# 声明工作流权限
 permissions:
   contents: write
   pages: write
   id-token: write
-  actions: read
 
-# 环境变量
 env:
   NODE_VERSION: '18'
-  PYTHON_VERSION: '3.11'
 
 jobs:
-  # 🔍 预检查作业
-  pre-check:
+  # 🔍 检查是否需要构建
+  check-changes:
     runs-on: ubuntu-latest
     outputs:
       should_build: ${{ steps.check.outputs.should_build }}
-      files_changed: ${{ steps.changes.outputs.files_changed }}
     steps:
-      - name: 📥 检出代码
+      - name: 📥 检出master分支
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
       - name: 🔍 检查文件变更
-        id: changes
+        id: check
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force_rebuild }}" == "true" ]]; then
-            echo "files_changed=true" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "⚡ 手动触发构建"
           else
-            # 检查是否有PDF、DOC等文件变更
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.(pdf|doc|docx|xls|xlsx)$' || true)
+            # 检查是否有真题文件变更
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.(pdf|doc|docx|xls|xlsx|jpg|png|zip)$' || true)
             if [[ -n "$CHANGED_FILES" ]]; then
-              echo "files_changed=true" >> $GITHUB_OUTPUT
-              echo "📄 检测到题目文件变更:"
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "📄 检测到真题文件变更："
               echo "$CHANGED_FILES"
             else
-              echo "files_changed=false" >> $GITHUB_OUTPUT
-              echo "ℹ️ 未检测到题目文件变更"
+              echo "should_build=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ 未检测到真题文件变更，跳过构建"
             fi
           fi
 
-      - name: 🎯 决定是否构建
-        id: check
-        run: |
-          if [[ "${{ steps.changes.outputs.files_changed }}" == "true" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "✅ 需要构建网站"
-          else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-            echo "⏭️ 跳过构建"
-          fi
-
-  # 📄 更新README文件树
-  update-readme:
-    needs: pre-check
-    if: needs.pre-check.outputs.should_build == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 检出master分支
-        uses: actions/checkout@v4
-        with:
-          ref: master
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🐍 设置Python环境
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: 🌳 生成文件树和侧边栏
-        run: |
-          echo "🚀 开始生成文件树..."
-          python generate_tree.py
-
-      - name: 📊 显示生成的文件
-        run: |
-          echo "📄 生成的README.md片段:"
-          if grep -A 20 "readme-tree start" README.md; then
-            echo "✅ README.md包含文件树"
-          else
-            echo "❌ README.md未包含文件树"
-          fi
-          
-          echo "📋 生成的_sidebar.md:"
-          if [[ -f "_sidebar.md" ]]; then
-            head -20 _sidebar.md
-            echo "✅ 侧边栏文件已生成"
-          else
-            echo "❌ 侧边栏文件未生成"
-          fi
-
-      - name: 💾 提交文件树更新
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "📚 docs: 自动更新文件树和侧边栏 [skip ci]"
-          branch: master
-          file_pattern: 'README.md _sidebar.md'
-          commit_user_name: "GitHub Actions"
-          commit_user_email: "actions@github.com"
-          commit_author: "GitHub Actions <actions@github.com>"
-
-  # 🚀 构建并部署Docsify网站
+  # 🏗️ 构建和部署网站
   build-and-deploy:
-    needs: [pre-check, update-readme]
-    if: needs.pre-check.outputs.should_build == 'true'
+    needs: check-changes
+    if: needs.check-changes.outputs.should_build == 'true'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
-      - name: 📥 检出最新的master分支
+      # 第一步：检出source分支（包含VitePress配置）
+      - name: 📥 检出source分支
+        uses: actions/checkout@v4
+        with:
+          ref: source
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+
+      # 第二步：检出master分支（包含PDF等资源文件）
+      - name: 📥 检出master分支资源
         uses: actions/checkout@v4
         with:
           ref: master
+          path: resources
 
-      - name: 🐍 设置Python环境
-        uses: actions/setup-python@v4
+      # 第三步：设置Node.js环境
+      - name: 🟢 设置Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: source/package-lock.json
 
-      - name: 📋 确保侧边栏存在
+      # 第四步：同步资源文件到source分支
+      - name: 🔄 同步资源文件
         run: |
-          if [[ ! -f "_sidebar.md" ]]; then
-            echo "⚠️ 侧边栏文件不存在，生成中..."
-            python generate_tree.py
-          else
-            echo "✅ 侧边栏文件存在"
-          fi
+          # 进入source目录
+          cd source
+          
+          # 清理旧的资源文件
+          rm -rf docs/public/真题 docs/public/综合测评 docs/public/assets
+          
+          # 复制新的资源文件
+          mkdir -p docs/public
+          cp -r ../resources/真题 docs/public/
+          cp -r ../resources/综合测评 docs/public/
+          cp -r ../resources/assets docs/public/
+          
+          echo "✅ 资源文件同步完成"
+          echo "📊 同步的文件统计："
+          echo "PDF文件: $(find docs/public -name "*.pdf" | wc -l)"
+          echo "DOC文件: $(find docs/public -name "*.doc*" | wc -l)"
 
-      - name: 🔧 验证Docsify配置
+      # 第五步：生成动态内容
+      - name: 📝 生成文档页面
         run: |
-          echo "📄 检查必要文件:"
+          cd source
           
-          # 检查index.html
-          if [[ -f "index.html" ]]; then
-            echo "✅ index.html 存在"
-          else
-            echo "❌ index.html 不存在"
-            exit 1
-          fi
+          # 运行文档生成脚本
+          npm run generate
           
-          # 检查.nojekyll
-          if [[ -f ".nojekyll" ]]; then
-            echo "✅ .nojekyll 存在"
-          else
-            echo "⚠️ 创建 .nojekyll 文件"
-            touch .nojekyll
-          fi
-          
-          # 检查_sidebar.md
-          if [[ -f "_sidebar.md" ]]; then
-            echo "✅ _sidebar.md 存在，包含 $(wc -l < _sidebar.md) 行"
-          else
-            echo "❌ _sidebar.md 不存在"
-            exit 1
-          fi
+          echo "✅ 文档页面生成完成"
 
-      - name: 📦 准备部署文件
+      # 第六步：安装依赖并构建
+      - name: 📦 安装依赖
         run: |
-          echo "📁 当前目录内容:"
-          ls -la
-          
-          echo "📊 统计信息:"
-          echo "PDF文件数量: $(find . -name "*.pdf" | wc -l)"
-          echo "DOC文件数量: $(find . -name "*.doc*" | wc -l)"
-          echo "年份目录数量: $(find . -maxdepth 1 -type d -name "[0-9][0-9][0-9][0-9]" | wc -l)"
+          cd source
+          npm ci
 
+      - name: 🔨 构建网站
+        run: |
+          cd source
+          npm run build
+          
+          echo "✅ 网站构建完成"
+          echo "📁 构建产物："
+          ls -la docs/.vitepress/dist/
+
+      # 第七步：配置GitHub Pages
       - name: 🔧 配置GitHub Pages
         uses: actions/configure-pages@v4
 
+      # 第八步：上传构建产物
       - name: 📤 上传到GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: source/docs/.vitepress/dist
 
+      # 第九步：部署到GitHub Pages
       - name: 🚀 部署到GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # 📊 部署后验证
-  post-deploy-check:
+      # 第十步：更新README中的链接（可选）
+      - name: 📄 更新README
+        if: success()
+        run: |
+          cd resources
+          
+          # 创建简单的更新脚本
+          python3 -c "
+import re
+from datetime import datetime
+
+# 读取README
+with open('README.md', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# 添加网站链接信息
+site_info = '''
+
+## 🌐 在线访问
+
+**[📖 点击访问在线真题库](${{ steps.deployment.outputs.page_url }})**
+
+- 🔍 支持全文搜索
+- 📱 适配移动设备  
+- 📄 在线PDF预览
+- ⚡ 快速加载
+
+> 最后更新: $(date +'%Y-%m-%d %H:%M:%S')
+
+'''
+
+# 检查是否已存在在线访问部分
+if '## 🌐 在线访问' not in content:
+    # 在文件树前添加网站信息
+    tree_start = content.find('<!-- readme-tree start -->')
+    if tree_start != -1:
+        content = content[:tree_start] + site_info + '\n' + content[tree_start:]
+    else:
+        content = content + site_info
+
+# 写回文件
+with open('README.md', 'w', encoding='utf-8') as f:
+    f.write(content)
+"
+          
+          # 提交更新（如果有变更）
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
+          git add README.md || true
+          git diff --staged --quiet || git commit -m "📚 更新在线访问链接 [skip ci]" || true
+          git push origin master || true
+
+  # 📊 部署成功通知
+  notify-success:
     needs: [build-and-deploy]
+    if: success()
     runs-on: ubuntu-latest
-    if: always() && needs.build-and-deploy.result == 'success'
     
     steps:
-      - name: 🏥 健康检查
+      - name: 🎉 部署成功通知
         run: |
-          echo "🎉 部署完成！"
-          echo "🌐 网站地址: ${{ needs.build-and-deploy.outputs.page_url || 'https://你的用户名.github.io/你的仓库名' }}"
-          echo ""
-          echo "📋 功能清单:"
-          echo "✅ 文件树自动更新"
-          echo "✅ Docsify网站部署"
-          echo "✅ PDF在线预览"
-          echo "✅ 搜索功能"
-          echo "✅ 响应式设计"
-          echo ""
-          echo "📖 下次提交时，如果包含PDF/DOC文件变更，将自动触发更新"
-
-      - name: 📊 创建部署总结
-        run: |
-          echo "## 📚 电赛真题网站部署报告" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎉 部署成功！" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🎯 本次部署" >> $GITHUB_STEP_SUMMARY
-          echo "- **触发方式**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **分支**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **提交**: [\`${{ github.sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 项目架构" >> $GITHUB_STEP_SUMMARY
+          echo "- **master分支**: 存储PDF/DOC真题文件" >> $GITHUB_STEP_SUMMARY
+          echo "- **source分支**: VitePress源码和配置" >> $GITHUB_STEP_SUMMARY  
+          echo "- **gh-pages分支**: 构建后的静态网站" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🌐 访问地址" >> $GITHUB_STEP_SUMMARY
-          echo "[📖 在线查看真题库](https://你的用户名.github.io/你的仓库名)" >> $GITHUB_STEP_SUMMARY
+          echo "**[🚀 立即访问真题库](${{ needs.build-and-deploy.outputs.page_url }})**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✨ 功能特性" >> $GITHUB_STEP_SUMMARY
-          echo "- 📄 PDF文件在线预览" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔍 全文搜索功能" >> $GITHUB_STEP_SUMMARY
-          echo "- 📱 响应式设计，支持移动端" >> $GITHUB_STEP_SUMMARY
-          echo "- 🌳 自动生成文件目录树" >> $GITHUB_STEP_SUMMARY
-          echo "- ⚡ 快速导航和分类浏览" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 智能搜索: 快速查找题目" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 在线预览: 无需下载即可查看PDF" >> $GITHUB_STEP_SUMMARY
+          echo "- 📱 响应式设计: 完美适配手机和电脑" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚡ 极速加载: 现代化的性能优化" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 分类导航: 按年份和题型快速定位" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 下次更新" >> $GITHUB_STEP_SUMMARY
+          echo "只需要向master分支添加新的PDF文件，网站将自动更新！" >> $GITHUB_STEP_SUMMARY
