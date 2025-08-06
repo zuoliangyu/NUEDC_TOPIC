@@ -150,44 +150,54 @@ jobs:
         run: |
           cd resources
           
-          # 创建简单的更新脚本
-          python3 -c "
-import re
-from datetime import datetime
-
-# 读取README
-with open('README.md', 'r', encoding='utf-8') as f:
-    content = f.read()
-
-# 添加网站链接信息
-site_info = '''
-
-## 🌐 在线访问
-
-**[📖 点击访问在线真题库](${{ steps.deployment.outputs.page_url }})**
-
-- 🔍 支持全文搜索
-- 📱 适配移动设备  
-- 📄 在线PDF预览
-- ⚡ 快速加载
-
-> 最后更新: $(date +'%Y-%m-%d %H:%M:%S')
-
-'''
-
-# 检查是否已存在在线访问部分
-if '## 🌐 在线访问' not in content:
-    # 在文件树前添加网站信息
-    tree_start = content.find('<!-- readme-tree start -->')
-    if tree_start != -1:
-        content = content[:tree_start] + site_info + '\n' + content[tree_start:]
-    else:
-        content = content + site_info
-
-# 写回文件
-with open('README.md', 'w', encoding='utf-8') as f:
-    f.write(content)
-"
+          # 创建Python脚本文件
+          cat > update_readme.py << 'EOF'
+          import re
+          from datetime import datetime
+          import os
+          
+          # 读取README
+          with open('README.md', 'r', encoding='utf-8') as f:
+              content = f.read()
+          
+          # 获取部署URL
+          deploy_url = os.environ.get('DEPLOY_URL', 'https://你的用户名.github.io/你的仓库名')
+          
+          # 添加网站链接信息
+          site_info = f'''
+          
+          ## 🌐 在线访问
+          
+          **[📖 点击访问在线真题库]({deploy_url})**
+          
+          - 🔍 支持全文搜索
+          - 📱 适配移动设备  
+          - 📄 在线PDF预览
+          - ⚡ 快速加载
+          
+          > 最后更新: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+          
+          '''
+          
+          # 检查是否已存在在线访问部分
+          if '## 🌐 在线访问' not in content:
+              # 在文件树前添加网站信息
+              tree_start = content.find('<!-- readme-tree start -->')
+              if tree_start != -1:
+                  content = content[:tree_start] + site_info + '\n' + content[tree_start:]
+              else:
+                  content = content + site_info
+          
+          # 写回文件
+          with open('README.md', 'w', encoding='utf-8') as f:
+              f.write(content)
+          
+          print("✅ README已更新")
+          EOF
+          
+          # 设置环境变量并运行脚本
+          export DEPLOY_URL="${{ steps.deployment.outputs.page_url }}"
+          python3 update_readme.py
           
           # 提交更新（如果有变更）
           git config user.name 'GitHub Actions'
