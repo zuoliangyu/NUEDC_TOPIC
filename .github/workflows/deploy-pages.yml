@@ -1,0 +1,155 @@
+name: 自动部署到 GitHub Pages
+
+on:
+  push:
+    branches: [ auto-deploy, master ]
+  pull_request:
+    branches: [ auto-deploy ]
+
+# 允许手动触发工作流
+  workflow_dispatch:
+
+# 设置 GITHUB_TOKEN 的权限，允许部署到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 只允许一个并发部署，跳过正在运行和最新排队之间的运行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 构建任务
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史记录用于更好的缓存
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 安装 docsify-cli
+        run: npm i docsify-cli -g
+
+      - name: 创建构建目录
+        run: mkdir -p dist
+
+      - name: 复制文档文件
+        run: |
+          cp README.md dist/
+          cp -r 真题 dist/
+          cp -r assets dist/
+          cp -r 综合测评 dist/
+
+      - name: 创建 docsify 配置文件
+        run: |
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="UTF-8">
+            <title>全国大学生电子设计竞赛历年真题</title>
+            <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+            <meta name="description" content="全国大学生电子设计竞赛历年真题在线浏览">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+            <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+            <link rel="icon" href="./assets/LOGO/NUEDC_LOGO.jpg">
+          </head>
+          <body>
+            <div id="app">加载中...</div>
+            <script>
+              window.$docsify = {
+                name: '电赛历年真题',
+                repo: 'https://github.com/zuoliangyu/NUEDC_TOPIC',
+                loadSidebar: true,
+                subMaxLevel: 3,
+                auto2top: true,
+                search: {
+                  placeholder: '搜索',
+                  noData: '没有找到结果',
+                  depth: 6
+                },
+                plugins: [
+                  function(hook, vm) {
+                    hook.beforeEach(function(html) {
+                      return html + '\n\n----\n\n<footer>© 2025 全国大学生电子设计竞赛历年真题 | 更新时间: ' + new Date().toLocaleString('zh-CN') + '</footer>';
+                    });
+                  }
+                ]
+              }
+            </script>
+            <!-- docsify 核心文件 -->
+            <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+            <!-- 搜索插件 -->
+            <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+            <!-- 代码高亮 -->
+            <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+            <!-- PDF 嵌入插件 -->
+            <script src="//cdn.jsdelivr.net/npm/docsify-pdf-embed-plugin/src/docsify-pdf-embed.js"></script>
+            <!-- 图片缩放 -->
+            <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+            <!-- 复制到剪贴板 -->
+            <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
+          </body>
+          </html>
+          EOF
+
+      - name: 生成侧边栏
+        run: |
+          cat > dist/_sidebar.md << 'EOF'
+          * [首页](/)
+          
+          * 📚 历年真题
+            * [1994-2007 年](真题/1994-2007/)
+            * [2009 年](真题/2009/)
+            * [2010 年](真题/2010/)
+            * [2011 年](真题/2011/)
+            * [2012 年](真题/2012/)
+            * [2013 年](真题/2013/)
+            * [2014 年](真题/2014/)
+            * [2015 年](真题/2015/)
+            * [2016 年](真题/2016/)
+            * [2017 年](真题/2017/)
+            * [2018 年](真题/2018/)
+            * [2019 年](真题/2019/)
+            * [2020 年](真题/2020/)
+            * [2021 年](真题/2021/)
+            * [2022 年](真题/2022/)
+            * [2023 年](真题/2023/)
+            * [2024 年](真题/2024/)
+            * [2025 年](真题/2025/)
+          
+          * 🏆 综合测评
+            * [综合测评题目](综合测评/)
+          
+          * 📖 使用说明
+            * [在线访问功能](#在线访问)
+            * [贡献指南](#贡献)
+          EOF
+
+      - name: 创建 .nojekyll 文件
+        run: touch dist/.nojekyll
+
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  # 部署任务
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
