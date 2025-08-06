@@ -2,9 +2,9 @@ name: 自动部署到 GitHub Pages
 
 on:
   push:
-    branches: [ auto-deploy, master ]
+    branches: [ master ]
   pull_request:
-    branches: [ auto-deploy ]
+    branches: [ master ]
 
 # 允许手动触发工作流
   workflow_dispatch:
