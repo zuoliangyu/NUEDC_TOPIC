@@ -19,6 +19,8 @@
 
 ```
 .
+|-- .claude
+|   `-- settings.local.json
 |-- assets
 |   `-- LOGO
 |       `-- NUEDC_LOGO.jpg
@@ -217,7 +219,7 @@
 |-- README.md
 `-- temp_tree.txt
 
-23 directories, 175 files
+24 directories, 176 files
 ```
 
 ## 📊 统计信息
@@ -250,6 +252,6 @@
 - **XLSX文件**: 5 个
 - **综合测评**: 6 个
 
-> 📅 最后更新: 2025-08-06 16:56:42 UTC
+> 📅 最后更新: 2025-08-06 17:11:49 UTC
 
 <!-- readme-tree end -->
