@@ -2,11 +2,9 @@
     <img src= "assets/LOGO/NUEDC_LOGO.jpg" alt="LOGO" height="240" />
 </div>
 
-# 全国大学生电子设计竞赛 历年赛题（目前更新到2024）
+# 全国大学生电子设计竞赛 历年赛题（目前更新到2025）
 
 ## 🌐 在线访问
-
-**[📖 点击访问在线真题库](https://zuoliangyu.github.io/NUEDC_TOPIC/)**
 
 - 🔍 支持全文搜索
 - 📱 适配移动设备  
