@@ -9,26 +9,21 @@ on:
 # 允许手动触发工作流
   workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限，允许部署到 GitHub Pages
+# 设置 GITHUB_TOKEN 的权限
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
-# 只允许一个并发部署，跳过正在运行和最新排队之间的运行
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  # 构建任务
-  build:
+  # 构建和部署任务
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取所有历史记录用于更好的缓存
+          fetch-depth: 0
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -137,19 +132,10 @@ jobs:
       - name: 创建 .nojekyll 文件
         run: touch dist/.nojekyll
 
-      - name: 上传构建产物
-        uses: actions/upload-pages-artifact@v3
+      - name: 部署到 gh-pages 分支
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: ./dist
-
-  # 部署任务
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: 部署到 GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
