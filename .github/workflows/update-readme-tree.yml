@@ -28,9 +28,9 @@ jobs:
         # 安装 tree 命令（如果不存在）
         sudo apt-get update && sudo apt-get install -y tree
         
-        # 生成目录树，只包含真题和综合测评目录，排除 .git、.github 和 assets 目录
+        # 生成目录树，只包含真题和综合测评目录，排除 .git、.github 和 assets 和.claude目录
         echo "生成目录树..."
-        tree -a -I '.git*|node_modules|*.log|assets' --dirsfirst --charset=ascii > temp_tree.txt
+        tree -a -I '.git*|node_modules|*.log|assets|.claude' --dirsfirst --charset=ascii > temp_tree.txt
         
         # 创建格式化的目录树输出
         cat > formatted_tree.txt << 'EOF'
