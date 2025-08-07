@@ -90,8 +90,60 @@ jobs:
           
           EOF
             
-            # 列出综合测评目录下的所有文件
-            find "dist/综合测评/" -name "*.pdf" | sort | while read file; do
+            # 遍历综合测评目录下的每个年份子目录
+            for subdir in dist/综合测评/*/; do
+              if [ -d "$subdir" ]; then
+                dirname=$(basename "$subdir")
+                echo "处理综合测评子目录: $dirname"
+                
+                # 查找该子目录下的PDF文件
+                pdf_file=$(find "$subdir" -name "*.pdf" | head -1)
+                if [ -n "$pdf_file" ]; then
+                  pdf_filename=$(basename "$pdf_file")
+                  pdf_title=$(echo "$pdf_filename" | sed 's/\.pdf$//')
+                  echo "- [$pdf_title]($dirname/$pdf_filename)" >> "dist/综合测评/README.md"
+                fi
+                
+                # 检查是否有仿真文件（.ms13, .ms14等）
+                sim_files=$(find "$subdir" -name "*.ms*" | head -1)
+                if [ -n "$sim_files" ]; then
+                  echo "  - [仿真文件]($dirname/)" >> "dist/综合测评/README.md"
+                  
+                  # 为该子目录创建README文件，列出所有仿真文件
+                  cat > "${subdir}README.md" << SUBEOF
+          # $dirname 仿真文件
+          
+          ## 📋 仿真文件列表
+          
+          SUBEOF
+                  
+                  # 列出该子目录下的所有仿真文件
+                  find "$subdir" -name "*.ms*" -o -name "*.slx" -o -name "*.png" -o -name "*.jpg" -o -name "*.docx" | sort | while read file; do
+                    filename=$(basename "$file")
+                    title=$(echo "$filename" | sed 's/\.[^.]*$//')
+                    echo "- [$title]($filename)" >> "${subdir}README.md"
+                  done
+                  
+                  cat >> "${subdir}README.md" << SUBEOF
+          
+          ## 📖 使用说明
+          
+          这些是 $dirname 年度综合测评的仿真文件，包括：
+          - Multisim仿真电路文件 (.ms13, .ms14)
+          - Matlab/Simulink仿真文件 (.slx)
+          - 电路图预览图片 (.png, .jpg)
+          - 相关文档 (.docx)
+          
+          ---
+          
+          [🔙 返回综合测评](../)
+          SUBEOF
+                fi
+              fi
+            done
+            
+            # 列出根目录下的PDF文件
+            find "dist/综合测评/" -maxdepth 1 -name "*.pdf" | sort | while read file; do
               filename=$(basename "$file")
               title=$(echo "$filename" | sed 's/\.pdf$//')
               echo "- [$title]($filename)" >> "dist/综合测评/README.md"
@@ -102,6 +154,8 @@ jobs:
           ## 📖 关于综合测评
           
           综合测评是全国大学生电子设计竞赛的重要组成部分，主要考查参赛队伍的综合设计能力和理论基础。
+          
+          点击"仿真文件"可查看该年份的Multisim仿真电路。
           
           ---
           
