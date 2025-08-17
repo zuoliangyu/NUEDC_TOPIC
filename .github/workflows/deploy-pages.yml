@@ -5,18 +5,14 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
-# 允许手动触发工作流
   workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: write
   pages: write
   id-token: write
 
 jobs:
-  # 构建和部署任务
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +39,7 @@ jobs:
           cp -r assets dist/
           cp -r 综合测评 dist/
 
-      - name: 生成各年份目录的README文件
+      - name: (已修正) 生成各年份目录的README文件
         run: |
           # 为每个年份目录创建README.md文件
           for year_dir in dist/真题/*/; do
@@ -51,31 +47,27 @@ jobs:
               year=$(basename "$year_dir")
               echo "正在为 $year 年生成README文件..."
               
-              cat > "${year_dir}README.md" << EOF
+              readme_path="${year_dir}README.md"
+              cat > "$readme_path" << EOF
           # ${year}年全国大学生电子设计竞赛题目
           
           ## 📋 题目列表
           
           EOF
               
-              # --- 修改开始 ---
-              # 在循环中判断文件类型并生成相应链接
-              find "$year_dir" -maxdepth 1 -name "*.pdf" -o -name "*.doc" -o -name "*.docx" -o -name "*.jpg" -o -name "*.zip" | sort | while read file; do
+              # 【修正】使用更稳妥的方式查找文件并生成链接
+              find "$year_dir" -maxdepth 1 -type f \( -name "*.pdf" -o -name "*.doc" -o -name "*.docx" -o -name "*.jpg" -o -name "*.zip" \) | sort | while read -r file; do
                 filename=$(basename "$file")
                 title=$(echo "$filename" | sed 's/\.[^.]*$//')
                 
-                # 判断文件是否为 PDF
                 if [[ "$filename" == *.pdf ]]; then
-                  # 如果是 PDF，则添加 ":include" 来触发嵌入式预览
-                  echo "- [$title]($filename \":include\")" >> "${year_dir}README.md"
+                  echo "- [$title]($filename \":include\")" >> "$readme_path"
                 else
-                  # 如果不是 PDF，则保持原来的普通链接
-                  echo "- [$title]($filename)" >> "${year_dir}README.md"
+                  echo "- [$title]($filename)" >> "$readme_path"
                 fi
               done
-              # --- 修改结束 ---
               
-              cat >> "${year_dir}README.md" << EOF
+              cat >> "$readme_path" << EOF
           
           ## 📖 使用说明
           
@@ -92,87 +84,71 @@ jobs:
           if [ -d "dist/综合测评/" ]; then
             echo "正在为综合测评生成README文件..."
             
-            cat > "dist/综合测评/README.md" << 'EOF'
+            readme_path="dist/综合测评/README.md"
+            cat > "$readme_path" << 'EOF'
           # 全国大学生电子设计竞赛综合测评题目
           
           ## 📋 历年综合测评题目
           
           EOF
             
-            # 遍历综合测评目录下的每个年份子目录
-            for subdir in dist/综合测评/*/; do
-              if [ -d "$subdir" ]; then
-                dirname=$(basename "$subdir")
-                echo "处理综合测评子目录: $dirname"
+            # 【修正】按子目录和文件分别处理，保证路径正确
+            # 先处理子目录
+            find "dist/综合测评/" -maxdepth 1 -mindepth 1 -type d | sort | while read -r subdir; do
+              dirname=$(basename "$subdir")
+              echo "处理综合测评子目录: $dirname"
+              
+              pdf_file=$(find "$subdir" -maxdepth 1 -name "*.pdf" | head -1)
+              if [ -n "$pdf_file" ]; then
+                pdf_filename=$(basename "$pdf_file")
+                pdf_title=$(echo "$pdf_filename" | sed 's/\.pdf$//')
+                echo "- [$pdf_title]($dirname/$pdf_filename \":include\")" >> "$readme_path"
+              fi
+              
+              sim_files=$(find "$subdir" -type f -name "*.ms*" | head -1)
+              if [ -n "$sim_files" ]; then
+                echo "  - [仿真文件]($dirname/)" >> "$readme_path"
                 
-                # --- 修改开始 ---
-                # 查找该子目录下的PDF文件
-                pdf_file=$(find "$subdir" -maxdepth 1 -name "*.pdf" | head -1)
-                if [ -n "$pdf_file" ]; then
-                  pdf_filename=$(basename "$pdf_file")
-                  pdf_title=$(echo "$pdf_filename" | sed 's/\.pdf$//')
-                  # 为 PDF 链接添加 ":include"
-                  echo "- [$pdf_title]($dirname/$pdf_filename \":include\")" >> "dist/综合测评/README.md"
-                fi
-                # --- 修改结束 ---
-                
-                # 检查是否有仿真文件（.ms13, .ms14等）
-                sim_files=$(find "$subdir" -name "*.ms*" | head -1)
-                if [ -n "$sim_files" ]; then
-                  echo "  - [仿真文件]($dirname/)" >> "dist/综合测评/README.md"
-                  
-                  # 为该子目录创建README文件，列出所有仿真文件
-                  cat > "${subdir}README.md" << SUBEOF
+                sub_readme_path="${subdir}README.md"
+                cat > "$sub_readme_path" << SUBEOF
           # $dirname 仿真文件
           
           ## 📋 仿真文件列表
           
           SUBEOF
-                  
-                  find "$subdir" -maxdepth 1 -name "*.ms*" -o -name "*.slx" -o -name "*.png" -o -name "*.jpg" -o -name "*.docx" | sort | while read file; do
+                
+                find "$subdir" -maxdepth 1 -type f | sort | while read -r file; do
+                  if [[ "$file" != *.md ]]; then
                     filename=$(basename "$file")
                     title=$(echo "$filename" | sed 's/\.[^.]*$//')
-                    echo "- [$title]($filename)" >> "${subdir}README.md"
-                  done
-                  
-                  cat >> "${subdir}README.md" << SUBEOF
-          
-          ## 📖 使用说明
-          
-          这些是 $dirname 年度综合测评的仿真文件。
+                    echo "- [$title]($filename)" >> "$sub_readme_path"
+                  fi
+                done
+                
+                cat >> "$sub_readme_path" << SUBEOF
           
           ---
           
           [🔙 返回综合测评](../)
           SUBEOF
-                fi
               fi
             done
             
-            # --- 修改开始 ---
-            # 列出根目录下的PDF文件
-            find "dist/综合测评/" -maxdepth 1 -name "*.pdf" | sort | while read file; do
+            # 再处理根目录下的文件
+            find "dist/综合测评/" -maxdepth 1 -type f -name "*.pdf" | sort | while read -r file; do
               filename=$(basename "$file")
               title=$(echo "$filename" | sed 's/\.pdf$//')
-              # 为 PDF 链接添加 ":include"
-              echo "- [$title]($filename \":include\")" >> "dist/综合测评/README.md"
+              echo "- [$title]($filename \":include\")" >> "$readme_path"
             done
-            # --- 修改结束 ---
             
-            cat >> "dist/综合测评/README.md" << 'EOF'
-          
-          ## 📖 关于综合测评
-          
-          综合测评是全国大学生电子设计竞赛的重要组成部分，主要考查参赛队伍的综合设计能力和理论基础。
-          
-          点击"仿真文件"可查看该年份的Multisim仿真电路。
-          
+            cat >> "$readme_path" << 'EOF'
           ---
           
           [🔙 返回首页](/)
           EOF
           fi
-
+      
+      # (后续步骤无需修改，保持原样即可)
       - name: 创建 docsify 配置文件
         run: |
           cat > dist/index.html << 'EOF'
