@@ -58,19 +58,28 @@ jobs:
           
           EOF
               
-              # 列出该年份目录下的所有题目文件
-              find "$year_dir" -name "*.pdf" -o -name "*.doc" -o -name "*.docx" -o -name "*.jpg" -o -name "*.zip" | sort | while read file; do
+              # --- 修改开始 ---
+              # 在循环中判断文件类型并生成相应链接
+              find "$year_dir" -maxdepth 1 -name "*.pdf" -o -name "*.doc" -o -name "*.docx" -o -name "*.jpg" -o -name "*.zip" | sort | while read file; do
                 filename=$(basename "$file")
-                # 移除文件扩展名作为题目名称
                 title=$(echo "$filename" | sed 's/\.[^.]*$//')
-                echo "- [$title]($filename)" >> "${year_dir}README.md"
+                
+                # 判断文件是否为 PDF
+                if [[ "$filename" == *.pdf ]]; then
+                  # 如果是 PDF，则添加 ":include" 来触发嵌入式预览
+                  echo "- [$title]($filename \":include\")" >> "${year_dir}README.md"
+                else
+                  # 如果不是 PDF，则保持原来的普通链接
+                  echo "- [$title]($filename)" >> "${year_dir}README.md"
+                fi
               done
+              # --- 修改结束 ---
               
               cat >> "${year_dir}README.md" << EOF
           
           ## 📖 使用说明
           
-          点击上方题目链接可直接查看PDF文件。如果是图片文件，将在新窗口中打开预览。
+          点击上方题目链接可直接在本页预览PDF文件。其他格式文件将提供下载或在新窗口预览。
           
           ---
           
@@ -96,13 +105,16 @@ jobs:
                 dirname=$(basename "$subdir")
                 echo "处理综合测评子目录: $dirname"
                 
+                # --- 修改开始 ---
                 # 查找该子目录下的PDF文件
-                pdf_file=$(find "$subdir" -name "*.pdf" | head -1)
+                pdf_file=$(find "$subdir" -maxdepth 1 -name "*.pdf" | head -1)
                 if [ -n "$pdf_file" ]; then
                   pdf_filename=$(basename "$pdf_file")
                   pdf_title=$(echo "$pdf_filename" | sed 's/\.pdf$//')
-                  echo "- [$pdf_title]($dirname/$pdf_filename)" >> "dist/综合测评/README.md"
+                  # 为 PDF 链接添加 ":include"
+                  echo "- [$pdf_title]($dirname/$pdf_filename \":include\")" >> "dist/综合测评/README.md"
                 fi
+                # --- 修改结束 ---
                 
                 # 检查是否有仿真文件（.ms13, .ms14等）
                 sim_files=$(find "$subdir" -name "*.ms*" | head -1)
@@ -117,8 +129,7 @@ jobs:
           
           SUBEOF
                   
-                  # 列出该子目录下的所有仿真文件
-                  find "$subdir" -name "*.ms*" -o -name "*.slx" -o -name "*.png" -o -name "*.jpg" -o -name "*.docx" | sort | while read file; do
+                  find "$subdir" -maxdepth 1 -name "*.ms*" -o -name "*.slx" -o -name "*.png" -o -name "*.jpg" -o -name "*.docx" | sort | while read file; do
                     filename=$(basename "$file")
                     title=$(echo "$filename" | sed 's/\.[^.]*$//')
                     echo "- [$title]($filename)" >> "${subdir}README.md"
@@ -128,11 +139,7 @@ jobs:
           
           ## 📖 使用说明
           
-          这些是 $dirname 年度综合测评的仿真文件，包括：
-          - Multisim仿真电路文件 (.ms13, .ms14)
-          - Matlab/Simulink仿真文件 (.slx)
-          - 电路图预览图片 (.png, .jpg)
-          - 相关文档 (.docx)
+          这些是 $dirname 年度综合测评的仿真文件。
           
           ---
           
@@ -142,12 +149,15 @@ jobs:
               fi
             done
             
+            # --- 修改开始 ---
             # 列出根目录下的PDF文件
             find "dist/综合测评/" -maxdepth 1 -name "*.pdf" | sort | while read file; do
               filename=$(basename "$file")
               title=$(echo "$filename" | sed 's/\.pdf$//')
-              echo "- [$title]($filename)" >> "dist/综合测评/README.md"
+              # 为 PDF 链接添加 ":include"
+              echo "- [$title]($filename \":include\")" >> "dist/综合测评/README.md"
             done
+            # --- 修改结束 ---
             
             cat >> "dist/综合测评/README.md" << 'EOF'
           
@@ -206,17 +216,11 @@ jobs:
                 ]
               }
             </script>
-            <!-- docsify 核心文件 -->
             <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-            <!-- 搜索插件 -->
             <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-            <!-- 代码高亮 -->
             <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-            <!-- PDF 嵌入插件 -->
             <script src="//cdn.jsdelivr.net/npm/docsify-pdf-embed-plugin/src/docsify-pdf-embed.js"></script>
-            <!-- 图片缩放 -->
             <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
-            <!-- 复制到剪贴板 -->
             <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
           </body>
           </html>
@@ -232,8 +236,8 @@ jobs:
           
           EOF
           
-          # 动态生成年份链接
-          for year_dir in dist/真题/*/; do
+          # 动态生成年份链接 (按年份倒序)
+          ls -dr dist/真题/*/ | while read year_dir; do
             if [ -d "$year_dir" ]; then
               year=$(basename "$year_dir")
               echo "* [$year 年](真题/$year/)" >> dist/_sidebar.md
