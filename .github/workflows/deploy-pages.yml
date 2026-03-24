@@ -158,35 +158,31 @@ jobs:
 
       - name: 生成侧边栏
         run: |
-          cat > dist/_sidebar.md << 'EOF'
-          * [🏠 首页](/)
-          
-          <details>
-          <summary>📚 历年真题</summary>
-          
-          EOF
-          
-          ls -dr dist/真题/*/ | while read year_dir; do
-            if [ -d "$year_dir" ]; then
-              year=$(basename "$year_dir")
-              echo "* [$year 年](真题/$year/)" >> dist/_sidebar.md
-            fi
-          done
-          
-          cat >> dist/_sidebar.md << 'EOF'
-          
-          </details>
-          
-          <details>
-          <summary>🏆 综合测评</summary>
-          
-          * [综合测评题目](综合测评/)
-          
-          </details>
-          
-          * 📖 使用说明
-            * [在线访问功能](#在线访问)
-            * [GitHub 仓库](https://github.com/zuoliangyu/NUEDC_TOPIC)
+          python3 << 'EOF'
+          import os
+
+          lines = ["* [🏠 首页](/)\n", "\n"]
+
+          lines.append("* **📚 历年真题**\n")
+          真题_dir = "dist/真题"
+          year_dirs = sorted(
+              [d for d in os.listdir(真题_dir) if os.path.isdir(os.path.join(真题_dir, d))],
+              reverse=True
+          )
+          for year in year_dirs:
+              lines.append(f"  * [{year} 年](真题/{year}/)\n")
+
+          lines.append("\n")
+          lines.append("* **🏆 综合测评**\n")
+          lines.append("  * [综合测评题目](综合测评/)\n")
+          lines.append("\n")
+          lines.append("* **🔗 项目链接**\n")
+          lines.append("  * [GitHub 仓库](https://github.com/zuoliangyu/NUEDC_TOPIC)\n")
+
+          with open("dist/_sidebar.md", "w", encoding="utf-8") as f:
+              f.writelines(lines)
+
+          print("_sidebar.md 生成成功！")
           EOF
 
       - name: 创建 .nojekyll 文件

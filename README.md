@@ -1,49 +1,35 @@
 <div align="center">
-    <img src= "assets/LOGO/NUEDC_LOGO.jpg" alt="LOGO" height="240" />
-    
-[![GitHub stars](https://img.shields.io/github/stars/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/zuoliangyu/NUEDC_TOPIC)](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  <img src="assets/LOGO/NUEDC_LOGO.jpg" alt="NUEDC Logo" height="200" />
 
+  [![GitHub stars](https://img.shields.io/github/stars/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/stargazers)
+  [![GitHub forks](https://img.shields.io/github/forks/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/network/members)
+  [![GitHub issues](https://img.shields.io/github/issues/zuoliangyu/NUEDC_TOPIC)](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 </div>
 
-# 📚 全国大学生电子设计竞赛历年赛题（1994-2025）
+# 全国大学生电子设计竞赛历年赛题（1994-2025）
 
-> **✨ 一个精心整理的电赛真题库，助力每一位电赛参赛者！**
+> 收录 1994 年至 2025 年全部 32 届电赛真题，持续更新中。
 
-## 🌐 在线访问
+## 在线访问
 
-### **[🚀 点击访问在线真题库 ➜](https://zuoliangyu.github.io/NUEDC_TOPIC/)**
+### [点击访问在线真题库 →](https://zuoliangyu.github.io/NUEDC_TOPIC/)
 
-#### 🎯 功能特色
+**功能特色：**
+- 全文搜索，快速定位题目
+- 响应式设计，适配手机 / 平板 / 电脑
+- 按年份分类导航，一目了然
+- 包含历年综合测评题目
 
-- 🔍 **智能搜索** - 支持全文搜索，快速定位所需题目
-- 📱 **响应式设计** - 完美适配手机、平板、电脑
-- 📄 **在线预览** - PDF文件在线预览，无需下载
-- ⚡ **快速加载** - 使用GitHub Pages，全球CDN加速
-- 📊 **分类导航** - 按年份分类，历年题目一目了然
-- 🏆 **综合测评** - 包含历年综合测评题目
+## 项目简介
 
-## 📖 项目介绍
+收集整理自 1994 年以来的全国大学生电子设计竞赛（NUEDC）赛题，包含综合测评，方便参赛者和指导老师检索查阅。
 
-这是一个收集并整理了全国大学生电子设计竞赛（NUEDC）自1994年以来大部分赛题的仓库。本项目致力于为广大电子设计竞赛爱好者、参赛学生和指导老师提供一个便捷的真题查阅平台，包括综合测评题目。
+| 收录年份 | 题目总数 | 文件格式 | 综合测评 |
+|----------|----------|----------|----------|
+| 1994—2025（32届） | 170+ | PDF / DOC / DOCX / XLSX | 6套 |
 
-### 🎯 项目目标
-
-- **📚 全面收录** - 涵盖历年电赛真题，持续更新
-- **🔍 便捷检索** - 提供多种检索方式，快速找到所需题目  
-- **📱 随时随地** - 支持移动端访问，学习不受限制
-- **🤝 开源共享** - 开源项目，欢迎社区贡献
-
-### 📊 数据统计
-
-- **📅 收录年份**: 1994年 - 2025年（32年）
-- **📄 题目总数**: 170+ 道题目
-- **📁 文件格式**: PDF、DOC、DOCX、XLSX
-- **🏆 综合测评**: 6套测评题目
-
-这是本仓库的实时文件结构，由程序自动生成和更新。它展示了所有赛题文件在仓库中的实际位置。
+以下是本仓库的实时文件结构，由 GitHub Actions 自动生成并更新。
 
 <!-- readme-tree start -->
 
@@ -346,56 +332,44 @@
 
 <!-- readme-tree end -->
 
-## 🤝 参与贡献
+## 参与贡献
 
-欢迎大家参与到这个项目中来！如果你有以下内容，请提交PR：
+欢迎通过 Pull Request 贡献以下内容：
 
-- 📄 **补充题目** - 缺失的历年真题文件
-- 🐛 **问题反馈** - 发现的错误或改进建议  
-- ✨ **功能建议** - 网站功能改进想法
-- 📝 **文档完善** - 帮助完善项目文档
+- 补充缺失的历年真题
+- 问题反馈与改进建议
+- 完善项目文档
 
-### 🔧 如何贡献
+**贡献流程：**
 
-1. **Fork** 本仓库
-2. **Clone** 到本地：`git clone https://github.com/你的用户名/NUEDC_TOPIC.git`
-3. **创建分支**：`git checkout -b feature/your-feature`
-4. **提交更改**：`git commit -m "Add: 你的更改说明"`
-5. **推送分支**：`git push origin feature/your-feature`
-6. **提交 Pull Request**
+1. Fork 本仓库
+2. 创建分支：`git checkout -b feature/your-feature`
+3. 提交更改：`git commit -m "Add: 说明"`
+4. 推送：`git push origin feature/your-feature`
+5. 提交 Pull Request
 
-## 📞 联系方式
+## 联系方式
 
-如果你有任何问题或建议，欢迎通过以下方式联系：
+- 问题反馈：[GitHub Issues](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
+- B站主页：[左岚](https://space.bilibili.com/27619688)
+- 讨论交流：[GitHub Discussions](https://github.com/zuoliangyu/NUEDC_TOPIC/discussions)
 
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
-- 📺 **哔哩哔哩**: [左岚的个人主页](https://space.bilibili.com/27619688)
-- 💡 **讨论交流**: [GitHub Discussions](https://github.com/zuoliangyu/NUEDC_TOPIC/discussions)
-
-## ⭐ Star History
-
-如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！
+## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
 
-## 📄 开源协议
+## 开源协议
 
-本项目采用 [MIT License](LICENSE) 开源协议。
-
-## 👨‍💻 作者信息
-
-**📝 整理维护**: [左岚](https://space.bilibili.com/27619688)
-
-> *"分享知识，助力梦想"* - 希望这个真题库能帮助每一位电赛参赛者取得好成绩！
+本项目采用 [MIT License](LICENSE)。
 
 ---
 
 <div align="center">
 
-**🎯 如果这个项目对你有帮助，请点个 ⭐ Star 支持一下！**
+如果本项目对你有帮助，欢迎点 ⭐ Star 支持！
 
-[![GitHub stars](https://img.shields.io/github/stars/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/stargazers)
+**整理维护：[左岚](https://space.bilibili.com/27619688)**
 
-*Copyright © 2025 左岚. All rights reserved.*
+*"分享知识，助力梦想"*
 
 </div>
