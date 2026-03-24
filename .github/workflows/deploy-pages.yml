@@ -239,7 +239,8 @@ jobs:
           lines.append("\n")
           refs_dir = "dist/参考资料"
           if os.path.isdir(refs_dir):
-              lines.append("* [📖 参考资料](参考资料/)\n")
+              lines.append("* 📖 参考资料\n")
+              lines.append("  * [查看全部参考资料](参考资料/)\n")
               lines.append("\n")
 
           lines.append("* 🔗 项目链接\n")
