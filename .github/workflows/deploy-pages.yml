@@ -113,6 +113,12 @@ jobs:
                   echo "- [$title]($BASE_URL/$encoded_path)" >> "$topic_readme"
                 done
                 echo "" >> "$topic_readme"
+                # 若目录内有 CREDITS.md，追加出处信息
+                if [ -f "${topic_dir}CREDITS.md" ]; then
+                  echo "---" >> "$topic_readme"
+                  cat "${topic_dir}CREDITS.md" >> "$topic_readme"
+                fi
+                echo "" >> "$topic_readme"
                 echo "---" >> "$topic_readme"
                 echo "[🔙 返回综合测评](综合测评/)" >> "$topic_readme"
               fi
