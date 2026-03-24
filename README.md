@@ -6,7 +6,20 @@
   [![GitHub issues](https://img.shields.io/github/issues/zuoliangyu/NUEDC_TOPIC)](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-  [![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
+  <table><tr>
+  <td align="center" width="180">
+    <a href="https://space.bilibili.com/27619688">
+      <img src="https://github.com/zuoliangyu.png" width="100" style="border-radius:50%" /><br/>
+      <b>左岚</b><br/>
+      <sub>整理维护</sub>
+    </a>
+  </td>
+  <td>
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
+
+  </td>
+  </tr></table>
 </div>
 
 # 全国大学生电子设计竞赛历年赛题（1994-2025）
