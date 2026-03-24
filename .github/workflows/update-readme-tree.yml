@@ -6,6 +6,7 @@ on:
     paths:
       - '真题/**'
       - '综合测评/**'
+      - '参考资料/**'
       - 'README.md'
   workflow_dispatch:
 
@@ -82,25 +83,44 @@ jobs:
         # 使用 Python 脚本来替换 README.md 中的内容
         python3 << 'EOF'
         import re
-        
+        import os
+
         # 读取当前的 README.md
         with open('README.md', 'r', encoding='utf-8') as f:
             content = f.read()
-        
+
         # 读取生成的目录树
         with open('formatted_tree.txt', 'r', encoding='utf-8') as f:
             tree_content = f.read()
-        
-        # 使用正则表达式替换 readme-tree start 和 end 之间的内容
+
+        # 替换文件树部分
         pattern = r'(<!-- readme-tree start -->).*?(<!-- readme-tree end -->)'
         replacement = r'\1\n\n' + tree_content + r'\n\2'
-        
         new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-        
+
+        # 自动扫描 参考资料/ 目录，生成参考资料表格
+        refs_dir = '参考资料'
+        refs_lines = []
+        if os.path.isdir(refs_dir):
+            files = sorted([f for f in os.listdir(refs_dir) if not f.startswith('.')])
+            if files:
+                refs_lines.append('| 文件名 | 格式 |')
+                refs_lines.append('|--------|------|')
+                for f in files:
+                    ext = os.path.splitext(f)[1].upper().lstrip('.')
+                    refs_lines.append(f'| {f} | {ext} |')
+            else:
+                refs_lines.append('（暂无文件）')
+        refs_content = '\n'.join(refs_lines)
+
+        pattern2 = r'(<!-- readme-refs start -->).*?(<!-- readme-refs end -->)'
+        replacement2 = r'\1\n\n' + refs_content + r'\n\n\2'
+        new_content = re.sub(pattern2, replacement2, new_content, flags=re.DOTALL)
+
         # 写回 README.md
         with open('README.md', 'w', encoding='utf-8') as f:
             f.write(new_content)
-        
+
         print("README.md 已更新")
         EOF
         
