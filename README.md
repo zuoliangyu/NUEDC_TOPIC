@@ -1,25 +1,27 @@
 <div align="center">
-  <img src="assets/LOGO/NUEDC_LOGO.jpg" alt="NUEDC Logo" height="200" />
-
-  [![GitHub stars](https://img.shields.io/github/stars/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/stargazers)
-  [![GitHub forks](https://img.shields.io/github/forks/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/network/members)
-  [![GitHub issues](https://img.shields.io/github/issues/zuoliangyu/NUEDC_TOPIC)](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
   <table><tr>
-  <td align="center" width="180">
+  <td align="center" valign="middle" width="220">
+    <img src="assets/LOGO/NUEDC_LOGO.jpg" alt="NUEDC Logo" height="180" />
+  </td>
+  <td align="center" valign="middle" width="160">
     <a href="https://space.bilibili.com/27619688">
       <img src="https://github.com/zuoliangyu.png" width="100" style="border-radius:50%" /><br/>
       <b>左岚</b><br/>
       <sub>整理维护</sub>
     </a>
   </td>
-  <td>
+  <td align="center" valign="middle">
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
 
   </td>
   </tr></table>
+
+  [![GitHub stars](https://img.shields.io/github/stars/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/stargazers)
+  [![GitHub forks](https://img.shields.io/github/forks/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/network/members)
+  [![GitHub issues](https://img.shields.io/github/issues/zuoliangyu/NUEDC_TOPIC)](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 </div>
 
 # 全国大学生电子设计竞赛历年赛题（1994-2025）
