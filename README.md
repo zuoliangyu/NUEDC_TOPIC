@@ -370,9 +370,6 @@
 - B站主页：[左岚](https://space.bilibili.com/27619688)
 - 讨论交流：[GitHub Discussions](https://github.com/zuoliangyu/NUEDC_TOPIC/discussions)
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
 
 ## 开源协议
 
