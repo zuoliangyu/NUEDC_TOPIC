@@ -2,12 +2,12 @@
 
   <table>
   <tr>
-    <td align="center" valign="middle" width="240">
-      <img src="assets/LOGO/NUEDC_LOGO.jpg" alt="NUEDC Logo" height="180" />
+    <td align="center" valign="middle" width="320">
+      <img src="assets/LOGO/NUEDC_LOGO.jpg" alt="NUEDC Logo" height="260" />
     </td>
-    <td align="center" valign="middle" width="180">
+    <td align="center" valign="middle" width="260">
       <a href="https://space.bilibili.com/27619688">
-        <img src="https://github.com/zuoliangyu.png" width="110" style="border-radius:50%" /><br/>
+        <img src="https://github.com/zuoliangyu.png" width="160" style="border-radius:50%" /><br/>
         <b>左岚</b><br/>
         <sub>整理维护</sub>
       </a>
