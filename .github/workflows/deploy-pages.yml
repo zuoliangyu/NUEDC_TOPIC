@@ -239,14 +239,8 @@ jobs:
           lines.append("\n")
           refs_dir = "dist/参考资料"
           if os.path.isdir(refs_dir):
-              files = sorted([f for f in os.listdir(refs_dir) if not f.startswith('.') and f != 'README.md'])
-              if files:
-                  lines.append("* 📖 参考资料\n")
-                  for f in files:
-                      title = os.path.splitext(f)[0]
-                      encoded = __import__('urllib.parse', fromlist=['quote']).quote(f"参考资料/{f}")
-                      lines.append(f"  * [{title}]({encoded})\n")
-                  lines.append("\n")
+              lines.append("* [📖 参考资料](参考资料/)\n")
+              lines.append("\n")
 
           lines.append("* 🔗 项目链接\n")
           lines.append("  * [GitHub 仓库](https://github.com/zuoliangyu/NUEDC_TOPIC)\n")
