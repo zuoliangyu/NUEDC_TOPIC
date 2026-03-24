@@ -13,13 +13,6 @@
       </a>
     </td>
   </tr>
-  <tr>
-    <td colspan="2" align="center">
-
-[![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
-
-    </td>
-  </tr>
   </table>
 
   [![GitHub stars](https://img.shields.io/github/stars/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/stargazers)
@@ -393,6 +386,10 @@
 ## 开源协议
 
 本项目采用 [MIT License](LICENSE)。
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
 
 ---
 
