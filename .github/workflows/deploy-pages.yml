@@ -81,14 +81,14 @@ jobs:
             echo "## 历年综合测评题目" >> "$readme_path"
             echo "" >> "$readme_path"
 
-            # 只遍历年份目录（以年份数字开头，如 2011-xxx），跳过参考资料、电路仿真汇总等
+            # 只遍历年份目录（以20开头），跳过参考资料、电路仿真汇总等
             for topic_dir in dist/综合测评/20*/; do
               if [ -d "$topic_dir" ]; then
                 topic=$(basename "$topic_dir")
+
+                # 在汇总页追加条目
                 echo "### $topic" >> "$readme_path"
                 echo "" >> "$readme_path"
-
-                # 只列出 PDF / DOC / DOCX 题目文件
                 find "$topic_dir" -maxdepth 1 -type f \( -name "*.pdf" -o -name "*.doc" -o -name "*.docx" \) | sort | while read -r file; do
                   filename=$(basename "$file")
                   title=$(echo "$filename" | sed 's/\.[^.]*$//')
@@ -96,8 +96,24 @@ jobs:
                   encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$repo_path'))")
                   echo "- [$title]($BASE_URL/$encoded_path)" >> "$readme_path"
                 done
-
                 echo "" >> "$readme_path"
+
+                # 为每个年份单独生成 README.md
+                topic_readme="${topic_dir}README.md"
+                echo "# $topic" > "$topic_readme"
+                echo "" >> "$topic_readme"
+                echo "## 题目文件" >> "$topic_readme"
+                echo "" >> "$topic_readme"
+                find "$topic_dir" -maxdepth 1 -type f \( -name "*.pdf" -o -name "*.doc" -o -name "*.docx" \) | sort | while read -r file; do
+                  filename=$(basename "$file")
+                  title=$(echo "$filename" | sed 's/\.[^.]*$//')
+                  repo_path=${file#dist/}
+                  encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$repo_path'))")
+                  echo "- [$title]($BASE_URL/$encoded_path)" >> "$topic_readme"
+                done
+                echo "" >> "$topic_readme"
+                echo "---" >> "$topic_readme"
+                echo "[🔙 返回综合测评](综合测评/)" >> "$topic_readme"
               fi
             done
 
@@ -176,7 +192,16 @@ jobs:
 
           lines.append("\n")
           lines.append("* 🏆 综合测评\n")
-          lines.append("  * [综合测评题目](综合测评/)\n")
+          综合测评_dir = "dist/综合测评"
+          topic_dirs = sorted(
+              [d for d in os.listdir(综合测评_dir)
+               if os.path.isdir(os.path.join(综合测评_dir, d)) and d.startswith("20")],
+              reverse=True
+          )
+          for topic in topic_dirs:
+              year = topic.split("-")[0]
+              label = topic[len(year)+1:] if "-" in topic else topic
+              lines.append(f"  * [{year} {label}](综合测评/{topic}/)\n")
           lines.append("\n")
           lines.append("* 🔗 项目链接\n")
           lines.append("  * [GitHub 仓库](https://github.com/zuoliangyu/NUEDC_TOPIC)\n")
