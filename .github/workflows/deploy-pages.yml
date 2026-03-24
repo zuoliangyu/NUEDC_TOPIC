@@ -113,6 +113,22 @@ jobs:
                   echo "- [$title]($BASE_URL/$encoded_path)" >> "$topic_readme"
                 done
                 echo "" >> "$topic_readme"
+                # 其他资源文件（仿真、PCB、原理图等）
+                other_files=$(find "$topic_dir" -maxdepth 1 -type f ! -name "*.pdf" ! -name "*.doc" ! -name "*.docx" ! -name "*.md" ! -name "*.txt" | sort)
+                if [ -n "$other_files" ]; then
+                  echo "## 其他资源" >> "$topic_readme"
+                  echo "" >> "$topic_readme"
+                  echo "以下文件需下载后使用对应软件打开：" >> "$topic_readme"
+                  echo "" >> "$topic_readme"
+                  echo "$other_files" | while read -r file; do
+                    filename=$(basename "$file")
+                    ext="${filename##*.}"
+                    repo_path=${file#dist/}
+                    encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$repo_path'))")
+                    echo "- [$filename]($BASE_URL/$encoded_path)（.$ext 文件）" >> "$topic_readme"
+                  done
+                  echo "" >> "$topic_readme"
+                fi
                 # 若目录内有 CREDITS.md，追加出处信息
                 if [ -f "${topic_dir}CREDITS.md" ]; then
                   echo "---" >> "$topic_readme"
