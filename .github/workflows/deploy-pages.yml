@@ -38,6 +38,7 @@ jobs:
           cp -r 真题 dist/
           cp -r assets dist/
           cp -r 综合测评 dist/
+          cp -r 参考资料 dist/
 
       - name: (最终版) 生成链接到GitHub的README文件
         run: |
@@ -117,6 +118,25 @@ jobs:
               fi
             done
 
+            echo "---" >> "$readme_path"
+            echo "[🔙 返回首页](/#/)" >> "$readme_path"
+          fi
+
+          # 为参考资料目录创建README文件
+          if [ -d "dist/参考资料/" ]; then
+            readme_path="dist/参考资料/README.md"
+            echo "# 参考资料" > "$readme_path"
+            echo "" >> "$readme_path"
+            echo "以下资料可作为电赛备赛的参考用书。" >> "$readme_path"
+            echo "" >> "$readme_path"
+            find "dist/参考资料/" -maxdepth 1 -type f ! -name "README.md" | sort | while read -r file; do
+              filename=$(basename "$file")
+              title=$(echo "$filename" | sed 's/\.[^.]*$//')
+              repo_path=${file#dist/}
+              encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$repo_path'))")
+              echo "- [$title]($BASE_URL/$encoded_path)" >> "$readme_path"
+            done
+            echo "" >> "$readme_path"
             echo "---" >> "$readme_path"
             echo "[🔙 返回首页](/#/)" >> "$readme_path"
           fi
@@ -217,6 +237,17 @@ jobs:
               label = topic[len(year)+1:] if "-" in topic else topic
               lines.append(f"  * [{year} {label}](综合测评/{topic}/)\n")
           lines.append("\n")
+          refs_dir = "dist/参考资料"
+          if os.path.isdir(refs_dir):
+              files = sorted([f for f in os.listdir(refs_dir) if not f.startswith('.') and f != 'README.md'])
+              if files:
+                  lines.append("* 📖 参考资料\n")
+                  for f in files:
+                      title = os.path.splitext(f)[0]
+                      encoded = __import__('urllib.parse', fromlist=['quote']).quote(f"参考资料/{f}")
+                      lines.append(f"  * [{title}]({encoded})\n")
+                  lines.append("\n")
+
           lines.append("* 🔗 项目链接\n")
           lines.append("  * [GitHub 仓库](https://github.com/zuoliangyu/NUEDC_TOPIC)\n")
 
