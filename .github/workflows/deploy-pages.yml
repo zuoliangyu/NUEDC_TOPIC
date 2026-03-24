@@ -125,7 +125,7 @@ jobs:
                 name: '电赛历年真题',
                 repo: 'https://github.com/zuoliangyu/NUEDC_TOPIC',
                 loadSidebar: true,
-                subMaxLevel: 3,
+                subMaxLevel: 0,
                 auto2top: true,
                 search: {
                   placeholder: '搜索',
@@ -152,6 +152,7 @@ jobs:
             <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
             <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
             <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
           </body>
           </html>
           EOF
@@ -163,7 +164,7 @@ jobs:
 
           lines = ["* [🏠 首页](/)\n", "\n"]
 
-          lines.append("* **📚 历年真题**\n")
+          lines.append("* 📚 历年真题\n")
           真题_dir = "dist/真题"
           year_dirs = sorted(
               [d for d in os.listdir(真题_dir) if os.path.isdir(os.path.join(真题_dir, d))],
@@ -173,10 +174,10 @@ jobs:
               lines.append(f"  * [{year} 年](真题/{year}/)\n")
 
           lines.append("\n")
-          lines.append("* **🏆 综合测评**\n")
+          lines.append("* 🏆 综合测评\n")
           lines.append("  * [综合测评题目](综合测评/)\n")
           lines.append("\n")
-          lines.append("* **🔗 项目链接**\n")
+          lines.append("* 🔗 项目链接\n")
           lines.append("  * [GitHub 仓库](https://github.com/zuoliangyu/NUEDC_TOPIC)\n")
 
           with open("dist/_sidebar.md", "w", encoding="utf-8") as f:
