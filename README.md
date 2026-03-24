@@ -5,6 +5,8 @@
   [![GitHub forks](https://img.shields.io/github/forks/zuoliangyu/NUEDC_TOPIC?style=social)](https://github.com/zuoliangyu/NUEDC_TOPIC/network/members)
   [![GitHub issues](https://img.shields.io/github/issues/zuoliangyu/NUEDC_TOPIC)](https://github.com/zuoliangyu/NUEDC_TOPIC/issues)
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+  [![Star History Chart](https://api.star-history.com/svg?repos=zuoliangyu/NUEDC_TOPIC&type=Date)](https://star-history.com/#zuoliangyu/NUEDC_TOPIC&Date)
 </div>
 
 # 全国大学生电子设计竞赛历年赛题（1994-2025）
@@ -30,6 +32,9 @@
 | 1994—2025（32届） | 170+ | PDF / DOC / DOCX / XLSX | 6套 |
 
 以下是本仓库的实时文件结构，由 GitHub Actions 自动生成并更新。
+
+<details>
+<summary>点击展开完整文件结构</summary>
 
 <!-- readme-tree start -->
 
@@ -340,6 +345,8 @@
 > 📅 最后更新: 2026-03-24 13:36:59 UTC
 
 <!-- readme-tree end -->
+
+</details>
 
 ## 参与贡献
 
