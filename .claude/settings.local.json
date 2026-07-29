@@ -8,7 +8,15 @@
       "Bash(git push:*)",
       "Bash(git merge:*)",
       "Bash(git pull:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(find /e/work/米醋工作室/管理/课程资料/电赛/电赛历年真题 -name *.html -o -name *.js -o -name *.css)",
+      "Bash(git config:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(grep -E '\\\\.\\(html|js|css|yml|yaml\\)$')",
+      "Bash(rtk git:*)",
+      "Bash(git stash:*)",
+      "Bash(find E:/work/米醋工作室/管理/课程资料/电赛/电赛历年真题 -name _sidebar.md -o -name index.html -o -name _config.yml -o -name docsify*)",
+      "Bash(gh workflow:*)"
     ],
     "deny": []
   }
