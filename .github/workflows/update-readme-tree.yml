@@ -1,13 +1,8 @@
 name: Update README Tree
 
 on:
-  push:
-    branches: [ master, main ]
-    paths:
-      - '真题/**'
-      - '综合测评/**'
-      - '参考资料/**'
-      - 'README.md'
+  # README 目录树由手动任务更新，避免 bot 在 master 上追加提交，
+  # 导致资料 push 与自动提交产生竞态。Pages 部署会动态生成侧边栏。
   workflow_dispatch:
 
 permissions:
