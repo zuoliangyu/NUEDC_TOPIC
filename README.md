@@ -58,7 +58,7 @@
 
 ---
 
-以下是本仓库的实时文件结构，由 GitHub Actions 自动生成并更新。
+以下是本仓库的文件结构。在线站点的侧边栏会在 Pages 部署时自动生成；README 目录树可在 GitHub Actions 中手动运行 `Update README Tree` 更新。
 
 <details>
 <summary>点击展开完整文件结构</summary>
