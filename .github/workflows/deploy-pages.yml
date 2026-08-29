@@ -250,6 +250,7 @@ jobs:
         run: |
           python3 << 'EOF'
           import os
+          from urllib.parse import quote
 
           lines = ["* [🏠 首页](/)\n", "\n"]
 
@@ -260,7 +261,11 @@ jobs:
               reverse=True
           )
           for year in year_dirs:
-              lines.append(f"  * [{year} 年](真题/{year}/)\n")
+              # Only numeric four-digit directories represent regular contest years.
+              # Other directory names (for example "2026 TI") keep their exact label.
+              label = f"{year} 年" if len(year) == 4 and year.isdigit() else year
+              path = quote(f"真题/{year}/", safe="/")
+              lines.append(f"  * [{label}]({path})\n")
 
           lines.append("\n")
           lines.append("* 🏆 综合测评\n")
@@ -273,7 +278,8 @@ jobs:
           for topic in topic_dirs:
               year = topic.split("-")[0]
               label = topic[len(year)+1:] if "-" in topic else topic
-              lines.append(f"  * [{year} {label}](综合测评/{topic}/)\n")
+              path = quote(f"综合测评/{topic}/", safe="/")
+              lines.append(f"  * [{year} {label}]({path})\n")
           lines.append("\n")
           refs_dir = "dist/参考资料"
           if os.path.isdir(refs_dir):
