@@ -1,0 +1,9 @@
+# 2021-多路信号发生电路
+
+## 题目文件
+
+- [2021年全国大学生电子设计竞赛综合测评题](https://zuoliangyu.github.io/NUEDC_TOPIC/%E7%BB%BC%E5%90%88%E6%B5%8B%E8%AF%84/2021-%E5%A4%9A%E8%B7%AF%E4%BF%A1%E5%8F%B7%E5%8F%91%E7%94%9F%E7%94%B5%E8%B7%AF/2021%E5%B9%B4%E5%85%A8%E5%9B%BD%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%94%B5%E5%AD%90%E8%AE%BE%E8%AE%A1%E7%AB%9E%E8%B5%9B%E7%BB%BC%E5%90%88%E6%B5%8B%E8%AF%84%E9%A2%98.pdf)
+
+
+---
+[🔙 返回综合测评](综合测评/)
