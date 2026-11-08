@@ -203,9 +203,13 @@ jobs:
                         '</footer>';
                     });
                     hook.afterEach(function(html) {
+                      // 文件链接按 GitHub Pages 地址生成；在 Netlify 等其他域名打开时换成当前站点，让文件从同一个站点下载
+                      var PUBLISHED = 'https://zuoliangyu.github.io/NUEDC_TOPIC/';
+                      var SITE = location.origin + location.pathname.replace(/[^/]*$/, '');
+                      if (SITE !== PUBLISHED) html = html.split(PUBLISHED).join(SITE);
                       // PDF 预览（直接 iframe）
                       html = html.replace(
-                        /<a\s+href="(https:\/\/zuoliangyu\.github\.io\/NUEDC_TOPIC\/[^"]+\.pdf)"([^>]*)>([^<]+)<\/a>/gi,
+                        /<a\s+href="([^"]+\.pdf)"([^>]*)>([^<]+)<\/a>/gi,
                         function(match, url, attrs, title) {
                           var id = 'pdf_' + Math.random().toString(36).substr(2, 8);
                           return '<a href="' + url + '" target="_blank">' + title + '</a> ' +
@@ -218,7 +222,7 @@ jobs:
                       );
                       // DOCX / DOC 预览（Office Online）
                       html = html.replace(
-                        /<a\s+href="(https:\/\/zuoliangyu\.github\.io\/NUEDC_TOPIC\/[^"]+\.docx?)"([^>]*)>([^<]+)<\/a>/gi,
+                        /<a\s+href="([^"]+\.docx?)"([^>]*)>([^<]+)<\/a>/gi,
                         function(match, url, attrs, title) {
                           var id = 'doc_' + Math.random().toString(36).substr(2, 8);
                           var officeUrl = 'https://view.officeapps.live.com/op/view.aspx?src=' + encodeURIComponent(url);
